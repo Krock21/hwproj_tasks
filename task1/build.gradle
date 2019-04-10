@@ -1,0 +1,18 @@
+group 'me.hwproj'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile('org.junit.jupiter:junit-jupiter-api:5.3.2')
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.3.2')
+    compile 'org.jetbrains:annotations:16.0.2'
+
+}
+test {
+    useJUnitPlatform()
+}
