@@ -16,7 +16,7 @@ class LazyFactoryTest {
     void initialize() {
         supInt = new Supplier<>() {
 
-            private int calls = 0;
+            volatile private int calls = 0;
 
             @Override
             public Integer get() {
@@ -46,7 +46,7 @@ class LazyFactoryTest {
         var lazy = LazyFactory.createSimpleMultiThreadLazy(supInt);
 
         ArrayList<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             threads.add(new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -55,7 +55,7 @@ class LazyFactoryTest {
             }));
         }
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             threads.get(i).start();
         }
 
@@ -67,7 +67,7 @@ class LazyFactoryTest {
         var lazy = LazyFactory.createComplexMultiThreadLazy(supInt);
 
         ArrayList<Thread> threads = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             threads.add(new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -76,7 +76,7 @@ class LazyFactoryTest {
             }));
         }
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < 100; i++) {
             threads.get(i).start();
         }
 
