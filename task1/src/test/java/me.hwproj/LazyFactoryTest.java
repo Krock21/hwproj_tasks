@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class LazyFactoryTest {
 
@@ -24,6 +25,71 @@ class LazyFactoryTest {
                 return calls;
             }
         };
+    }
+
+    @Test
+    void singleThreadLazy_SupplierReturningNull_NoNullException() {
+        var lazy = LazyFactory.createSimpleMultiThreadLazy(new Supplier<Object>() {
+            @Override
+            public Object get() {
+                return null;
+            }
+        });
+
+        lazy.get();
+        assertNull(lazy.get());
+    }
+
+    @Test
+    void simpleMultiThreadLazy_SupplierReturningNull_NoNullException() {
+        var lazy = LazyFactory.createSimpleMultiThreadLazy(new Supplier<Object>() {
+            @Override
+            public Object get() {
+                return null;
+            }
+        });
+
+        ArrayList<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            threads.add(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    lazy.get();
+                }
+            }));
+        }
+
+        for (int i = 0; i < 100; i++) {
+            threads.get(i).start();
+        }
+
+        assertNull(lazy.get());
+    }
+
+    @Test
+    void complexMultiThreadLazy_SupplierReturningNull_NoNullException() {
+        var lazy = LazyFactory.createComplexMultiThreadLazy(new Supplier<Object>() {
+            @Override
+            public Object get() {
+                return null;
+            }
+        });
+
+        ArrayList<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < 100; i++) {
+            threads.add(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    lazy.get();
+                }
+            }));
+        }
+
+        for (int i = 0; i < 100; i++) {
+            threads.get(i).start();
+        }
+
+        assertNull(lazy.get());
     }
 
     @Test
