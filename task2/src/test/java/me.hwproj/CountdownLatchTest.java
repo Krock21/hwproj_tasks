@@ -13,16 +13,16 @@ import java.util.function.Consumer;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CountdownLatchTest {
-    final int COUNTER = 50;
-    AtomicInteger awaitsDone;
-    AtomicInteger countDownsDone;
-    AtomicInteger countUpsDone;
-    CountdownLatch latch;
-    List<Thread> awaitThreads;
-    List<Thread> countDownThreads;
-    List<Thread> countUpThreads;
+    private final int COUNTER = 50;
+    private AtomicInteger awaitsDone;
+    private AtomicInteger countDownsDone;
+    private AtomicInteger countUpsDone;
+    private CountdownLatch latch;
+    private List<Thread> awaitThreads;
+    private List<Thread> countDownThreads;
+    private List<Thread> countUpThreads;
 
-    void InitThreads() {
+    void initThreads() {
         Lock lock = new ReentrantLock();
         awaitThreads = new ArrayList<>();
         countDownThreads = new ArrayList<>(COUNTER);
@@ -78,7 +78,7 @@ class CountdownLatchTest {
         countDownsDone = new AtomicInteger(0);
         countUpsDone = new AtomicInteger(0);
         latch = new CountdownLatch(COUNTER);
-        InitThreads();
+        initThreads();
     }
 
     @Test
@@ -112,7 +112,7 @@ class CountdownLatchTest {
             }
         });
         assertEquals(COUNTER, countDownsDone.get());
-        InitThreads();
+        initThreads();
         countDownThreads.stream().limit(COUNTER).forEach(Thread::start);
         countUpThreads.stream().limit(COUNTER).forEach(Thread::start);
 

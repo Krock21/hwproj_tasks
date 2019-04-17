@@ -6,13 +6,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class CountdownLatch {
-    private volatile AtomicInteger counter; // volatile is unnecessary because of locks
+    private int counter; // volatile is unnecessary because of locks
     private final Lock lock = new ReentrantLock();
     private final Condition positiveCondition;
     private final Condition zeroCondition;
 
     public CountdownLatch(int counter) {
-        this.counter = new AtomicInteger(counter);
+        this.counter = counter;
         positiveCondition = lock.newCondition();
         zeroCondition = lock.newCondition();
     }
@@ -20,7 +20,7 @@ public class CountdownLatch {
     public void await() throws InterruptedException { // Maybe not all threads will be unlocked
         lock.lock();
         try {
-            while (counter.get() != 0) {
+            while (counter != 0) {
                 zeroCondition.await();
             }
         } finally {
@@ -31,11 +31,11 @@ public class CountdownLatch {
     public void countDown() throws InterruptedException {
         lock.lock();
         try {
-            while (counter.get() == 0) {
+            while (counter == 0) {
                 positiveCondition.await();
             }
-            counter.addAndGet(-1);
-            if (counter.get() == 0) {
+            counter--;
+            if (counter == 0) {
                 zeroCondition.signalAll();
             }
         } finally {
@@ -46,8 +46,8 @@ public class CountdownLatch {
     public void countUp() {
         lock.lock();
         try {
-            counter.addAndGet(1);
-            if (counter.get() != 0) {
+            counter++;
+            if (counter != 0) {
                 positiveCondition.signalAll(); // only 1 needed
             }
         } finally {
