@@ -7,7 +7,7 @@ import java.util.function.Supplier;
 
 public class LazyFactory {
     public static <T> Lazy<T> createSimpleSingleThreadLazy(@NotNull Supplier<T> supplier) {
-        return new Lazy<T>() {
+        return new Lazy<>() {
             T value;
             boolean isSetted;
 
@@ -36,7 +36,7 @@ public class LazyFactory {
                 synchronized (isSetted) {
                     if (!isSetted) {
                         value = supplier.get();
-                        isSetted = Boolean.TRUE;
+                        isSetted = true;
                     }
                 }
                 return value;
