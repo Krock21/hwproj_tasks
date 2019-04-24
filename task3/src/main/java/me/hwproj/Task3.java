@@ -33,6 +33,18 @@ public class Task3 extends Application {
                     @Override
                     public void handle(ActionEvent event) {
                         button.setText(gameBoard.makeMove(columnIndex, rowIndex));
+                        if (gameBoard.getStatus() != 0) {
+                            String textLabel = "";
+                            if (gameBoard.getStatus() == 1) {
+                                textLabel = "X wins!";
+                            } else {
+                                textLabel = "O wins!";
+                            }
+                            Label endLabel = new Label(textLabel);
+                            Scene endScene = new Scene(endLabel, 50, 20);
+                            stage.setScene(endScene);
+                            stage.show();
+                        }
                     }
                 });
                 row.add(button);

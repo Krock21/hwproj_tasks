@@ -20,31 +20,32 @@ public class Board {
     }
 
     public Integer getStatus() {
-        for (int i = 0; i < 3; i++) {
-            int flag1 = -1;
-            int flag2 = -1;
-            for (int j = 0; j < 3; j++) {
-                if (board.get(i).get(j) != flag1) {
-                    if (flag1 == -1) {
-                        flag1 = board.get(i).get(j);
-                    } else {
-                        flag1 = -2;
+        for (int value = 1; value < 3; value++) {
+            for (int i = 0; i < 3; i++) {
+                int flag1 = value;
+                int flag2 = value;
+                for (int j = 0; j < 3; j++) {
+                    if (board.get(i).get(j) != value) {
+                        flag1 = 0;
                     }
-                }
 
-                if (board.get(j).get(i) != flag2) {
-                    if (flag2 == -1) {
-                        flag2 = board.get(i).get(j);
-                    } else {
-                        flag2 = -2;
+                    if (board.get(j).get(i) != value) {
+                        flag2 = 0;
                     }
                 }
+                if (flag1 != 0 || flag2 != 0) {
+                    return value;
+                }
             }
-            if (flag1 == 1 || flag2 == 1) {
-                return 1;
+            if (board.get(0).get(0) == value &&
+                    board.get(1).get(1) == value &&
+                    board.get(2).get(2) == value) {
+                return value;
             }
-            if (flag1 == 2 || flag2 == 2) {
-                return 2;
+            if (board.get(2).get(0) == value &&
+                    board.get(1).get(1) == value &&
+                    board.get(0).get(2) == value) {
+                return value;
             }
         }
         return 0;
