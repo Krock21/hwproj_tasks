@@ -5,6 +5,9 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * normal Latch with countUp
+ */
 public class CountdownLatch {
     private int counter; // volatile is unnecessary because of locks
     private final Lock lock = new ReentrantLock();
