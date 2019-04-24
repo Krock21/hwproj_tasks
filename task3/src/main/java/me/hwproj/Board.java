@@ -19,7 +19,18 @@ public class Board {
         }
     }
 
-    public Integer getStatus() {
+    public BoardStatus getStatus() {
+        boolean isdraw = true;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board.get(i).get(j) == 0) {
+                    isdraw = false;
+                }
+            }
+        }
+        if (isdraw) {
+            return BoardStatus.DRAW;
+        }
         for (int value = 1; value < 3; value++) {
             for (int i = 0; i < 3; i++) {
                 int flag1 = value;
@@ -34,21 +45,33 @@ public class Board {
                     }
                 }
                 if (flag1 != 0 || flag2 != 0) {
-                    return value;
+                    if (value == 1) {
+                        return BoardStatus.X_WIN;
+                    } else if (value == 2) {
+                        return BoardStatus.O_WIN;
+                    }
                 }
             }
             if (board.get(0).get(0) == value &&
                     board.get(1).get(1) == value &&
                     board.get(2).get(2) == value) {
-                return value;
+                if (value == 1) {
+                    return BoardStatus.X_WIN;
+                } else if (value == 2) {
+                    return BoardStatus.O_WIN;
+                }
             }
             if (board.get(2).get(0) == value &&
                     board.get(1).get(1) == value &&
                     board.get(0).get(2) == value) {
-                return value;
+                if (value == 1) {
+                    return BoardStatus.X_WIN;
+                } else if (value == 2) {
+                    return BoardStatus.O_WIN;
+                }
             }
         }
-        return 0;
+        return BoardStatus.INGAME;
     }
 
     public String makeMove(int i, int j) {
