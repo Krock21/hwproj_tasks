@@ -25,10 +25,26 @@ public class Board {
             int flag2 = -1;
             for (int j = 0; j < 3; j++) {
                 if (board.get(i).get(j) != flag1) {
-                    if(flag1 == -1) {
-                        flag1 = board.get(i).get(j)
+                    if (flag1 == -1) {
+                        flag1 = board.get(i).get(j);
+                    } else {
+                        flag1 = -2;
                     }
                 }
+
+                if (board.get(j).get(i) != flag2) {
+                    if (flag2 == -1) {
+                        flag2 = board.get(i).get(j);
+                    } else {
+                        flag2 = -2;
+                    }
+                }
+            }
+            if (flag1 == 1 || flag2 == 1) {
+                return 1;
+            }
+            if (flag1 == 2 || flag2 == 2) {
+                return 2;
             }
         }
         return 0;
