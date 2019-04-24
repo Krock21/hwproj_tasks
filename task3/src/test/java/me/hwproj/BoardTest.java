@@ -13,11 +13,6 @@ class BoardTest {
         game = new Board();
     }
 
-
-    @Test
-    void getStatus() {
-    }
-
     @Test
     void xWinDiagonalGameTest() {
         game.makeMove(0,0);
@@ -67,9 +62,12 @@ class BoardTest {
         game.makeMove(0,0);
         game.makeMove(1,0);
         game.makeMove(0,1);
-        game.makeMove(1,1);
         game.makeMove(0,2);
+        game.makeMove(2,0);
+        game.makeMove(1,1);
         game.makeMove(1,2);
+        game.makeMove(2,2);
+        game.makeMove(2,1);
         assertEquals(BoardStatus.DRAW, game.getStatus());
     }
 
@@ -79,9 +77,15 @@ class BoardTest {
         game.makeMove(0,0);
         game.makeMove(1,0);
         game.makeMove(0,1);
-        game.makeMove(1,1);
         game.makeMove(0,2);
+        game.makeMove(2,0);
+        game.makeMove(2,0);
+        game.makeMove(1,1);
         game.makeMove(1,2);
+        game.makeMove(2,2);
+        game.makeMove(2,1);
+        game.makeMove(2,1);
+        game.makeMove(2,1);
         assertEquals(BoardStatus.DRAW, game.getStatus());
     }
 }

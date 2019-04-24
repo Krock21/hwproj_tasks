@@ -28,9 +28,6 @@ public class Board {
                 }
             }
         }
-        if (isdraw) {
-            return BoardStatus.DRAW;
-        }
         for (int value = 1; value < 3; value++) {
             for (int i = 0; i < 3; i++) {
                 int flag1 = value;
@@ -70,6 +67,10 @@ public class Board {
                     return BoardStatus.O_WIN;
                 }
             }
+        }
+
+        if (isdraw) {
+            return BoardStatus.DRAW;
         }
         return BoardStatus.INGAME;
     }
