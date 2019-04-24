@@ -7,7 +7,7 @@ plugins {
 group 'me.hwproj'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 11
+sourceCompatibility = 12
 
 repositories {
     mavenCentral()
@@ -24,6 +24,6 @@ test {
 }
 
 javafx {
-    version = "11.0.2"
+    version = "12"
     modules = [ 'javafx.controls' ]
 }
