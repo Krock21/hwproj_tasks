@@ -20,7 +20,17 @@ public class Board {
     }
 
     public Integer getStatus() {
-
+        for (int i = 0; i < 3; i++) {
+            int flag1 = -1;
+            int flag2 = -1;
+            for (int j = 0; j < 3; j++) {
+                if (board.get(i).get(j) != flag1) {
+                    if(flag1 == -1) {
+                        flag1 = board.get(i).get(j)
+                    }
+                }
+            }
+        }
         return 0;
     }
 
