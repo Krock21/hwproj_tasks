@@ -36,7 +36,7 @@ public class Server {
     }
 
 
-    private List<StringAndBoolean> list(String pathName) {
+    public List<StringAndBoolean> list(String pathName) {
         var fileList = new ArrayList<StringAndBoolean>();
 
         Path path = Paths.get(pathToDir, pathName);
@@ -70,7 +70,7 @@ public class Server {
         }
     }
 
-    private SizeAndContent get(String pathName) {
+    public SizeAndContent get(String pathName) {
         Path path = Paths.get(pathToDir, pathName);
         File file = path.toFile();
 
