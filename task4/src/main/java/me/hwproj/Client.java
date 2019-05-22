@@ -35,6 +35,7 @@ public class Client {
                     break;
                 }
                 System.out.println("Write path");
+                in.nextLine();
                 String path = in.nextLine();
                 if (requestCode == 1) {
                     System.out.println("Start executing list");
@@ -123,8 +124,7 @@ public class Client {
                 stream.write(buffer.array());
                 buffer.clear();
             }
-            var bytes = stream.toByteArray();
-            return bytes;
+            return stream.toByteArray();
         }
     }
 

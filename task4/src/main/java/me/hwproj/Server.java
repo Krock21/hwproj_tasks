@@ -11,6 +11,7 @@ import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -106,10 +107,10 @@ public class Server {
                                         SocketChannel channel = (SocketChannel) key.channel(); // ??????????????????????????????????
                                         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                                         int bytesRead = channel.read(buffer);
-                                        if (bytesRead % 2 != 0) {
+                                        /*if (bytesRead % 2 != 0) {
                                             throw new IOException();
-                                        }
-                                        String query = buffer.toString().substring(0, bytesRead / 2);
+                                        }*/
+                                        var query = new String(buffer.array(), StandardCharsets.UTF_8);
                                         System.out.println("Query received: ");
                                         System.out.println(query);
                                     }
