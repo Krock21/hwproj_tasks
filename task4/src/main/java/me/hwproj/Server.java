@@ -89,8 +89,8 @@ public class Server {
                                     if (key.isReadable()) {// a channel is ready for reading
                                         // TODO
                                         SocketChannel channel = (SocketChannel) key.channel(); // ??????????????????????????????????/
-                                        byte[] buffer = new byte[BUFFER_SIZE];
-                                        int bytesRead = channel.read(ByteBuffer.wrap(buffer));
+                                        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
+                                        int bytesRead = channel.read(buffer);
                                     }
                                     keyIterator.remove();
                                 }
