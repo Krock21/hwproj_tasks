@@ -165,7 +165,7 @@ public class Server {
                 String path = scanner.next();
 
                 if (scanner.hasNext()) {
-                    outputStream.writeBytes("-1");
+                    outputStream.writeLong(-1);
                     return;
                 }
 
@@ -174,12 +174,11 @@ public class Server {
                 InputStream inputStream = sizeAndContent.inputStream;
 
                 if (size == -1 || inputStream == null) {
-                    outputStream.writeBytes("-1");
+                    outputStream.writeLong(-1);
                     return;
                 }
 
-                outputStream.writeBytes(String.valueOf(size));
-                outputStream.writeBytes(" ");
+                outputStream.writeLong(size);
 
                 byte[] buffer = new byte[1024];
                 while (true) {
