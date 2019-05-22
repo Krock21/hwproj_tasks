@@ -224,7 +224,7 @@ public class Server {
 
                 outputStream.writeLong(size);
 
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[BUFFER_SIZE];
                 while (true) {
                     int length = inputStream.read(buffer);
                     if (length == -1 || length == 0) {
