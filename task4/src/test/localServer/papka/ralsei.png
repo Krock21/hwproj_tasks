@@ -1,0 +1,101 @@
+ \documentclass[12pt]{article}
+ \usepackage{cmap}
+ \usepackage[T2A]{fontenc}
+ \usepackage[utf8]{inputenc}
+ \usepackage[russian]{babel}
+ \usepackage{graphicx}
+ \usepackage{amsthm,amsmath,amssymb}
+ \usepackage[russian,colorlinks=true,urlcolor=red,linkcolor=blue]{hyperref}
+ \usepackage{enumerate}
+ \usepackage{datetime}
+ \usepackage{fancyhdr}
+ \usepackage{lastpage}
+ \usepackage{color}
+ \usepackage{verbatim}
+ \usepackage{setspace}
+ \usepackage[normalem]{ulem}
+ \usepackage{verbatim}
+ \usepackage{ upgreek }
+  
+ \parskip=0em
+ \parindent=0em
+ 
+ \setstretch{1.5}
+ 
+ \sloppy
+ \voffset=-20mm
+ \textheight=235mm
+ \hoffset=-25mm
+ \textwidth=180mm
+ \headsep=12pt
+ \footskip=20pt
+
+ \setcounter{page}{0}
+ \pagestyle{empty}
+
+ % Отступы
+ \def\makeparindent{\hspace*{\parindent}}
+ \def\up{\vspace*{-0.3em}}
+ \def\down{\vspace*{0.3em}}
+ \def\LINE{\vspace*{-1em}\noindent \underline{\hbox to 1\textwidth{{ } \hfil{ } \hfil{ } }}}
+ 
+ \lfoot{}
+ \cfoot{\thepage\t{/}\pageref*{LastPage}}
+ \rfoot{}
+ \renewcommand{\footrulewidth}{0.4pt}
+ 
+ \newenvironment{MyList}[1][4pt]{
+ 	\begin{enumerate}[1.]
+ 		\setlength{\parskip}{0pt}
+ 		\setlength{\itemsep}{#1}
+ 	}{       
+ 	\end{enumerate}
+ }
+ \newenvironment{InnerMyList}[1][0pt]{
+ 	\vspace*{-0.5em}
+ 	\begin{enumerate}[a)]
+ 		\setlength{\parskip}{#1}
+ 		\setlength{\itemsep}{0pt}
+ 	}{
+ 	\end{enumerate}
+ }
+ 
+ % Формулы с правильными отступами
+ \newenvironment{smallformula}{	
+ 	\vspace*{-0.8em}
+ }{
+ 	\vspace*{-1.2em}	
+ }
+ \newenvironment{formula}{	
+ 	\vspace*{-0.4em}
+ }{
+ 	\vspace*{-0.6em}	
+ }
+
+% Код с правильными отступами
+\newenvironment{code}{
+	
+	c
+	\vspace*{-0.5em}
+	\vspace*{-0.5em}
+}
+ 
+ \newcommand{\red}[1]{{\color{red}#1}}
+ \newcommand{\ov}[1]{\overline{#1}}
+ \newcommand{\s}{\sigma}
+ \newcommand{\e}{\varepsilon}
+ 
+ \begin{document}	
+  {\bf 2. Пусть случайная величина $X_n$ принимает значения $\sqrt{n}$ и $-\sqrt{n}$ с вероятностью $\frac{1}{2}$. Выполняется ли для последовательности $(X_n)$ ЗБЧ?}\\
+  \\
+  По определению, нам нужно, чтобы для последовательности:\\
+  $Z_n = \frac{\sum_{j = 1}^{n} X_j}{n} - \frac{\sum_{j=1}^n EX_j}{n}$\\
+  Выполнялось\\
+  $\forall \varepsilon \lim\limits_{n \to \infty} P\{|Z_n| > \varepsilon\} = 0$\\
+  Заметим, что $\forall j, EX_j = -\frac{1}{2}\sqrt{n} + \frac{1}{2}\sqrt{n} = 0$.\\
+  Поэтому  \\
+  $Z_n = \frac{\sum_{j = 1}^{n} X_j}{n}$\\
+  Предположим, что ЗБЧ выполняется. Возьмём какой-нибудь $\varepsilon > 0$.\\
+  По определению предела, $\exists N, \forall n > N, P\{|Z_n| > \varepsilon\} < \varepsilon$.\\
+  Возьмём теперь такое достаточно большое $n$, чтобы 
+\end{document}
