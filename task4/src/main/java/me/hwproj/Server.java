@@ -150,14 +150,14 @@ public class Server {
                                 }
                             }
                         }
-                        serverAcceptNewClientsThread.start();
-                        serverReadFromClientsThread.start();
                     } catch (IOException e) {
                         System.err.println("IOException in serverReadFromClientsThread");
                         System.exit(-1);
                     }
                 }
             });
+            serverAcceptNewClientsThread.start();
+            serverReadFromClientsThread.start();
         } else {
             throw new ServerError("Server is already running", new Error());
         }
@@ -167,12 +167,12 @@ public class Server {
      * Answers on user query and writes results to socket.
      * If query is <1: Int> <path: String>, returns <size: Int> (<name: String> <is_dir: Boolean>)*
      * If query is <2: Int> <path: String>, returns <size: Long> <content: Bytes>.
-     *
+     * <p>
      * Otherwise, or in case of any errors or wrong query parameters, writes "-1" to socket.
      */
     private void receiveQuery(@NotNull String query, @NotNull Socket socket) throws IOException {
         try (DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-                Scanner scanner = new Scanner(query)) {
+             Scanner scanner = new Scanner(query)) {
 
             if (!scanner.hasNextInt()) {
                 outputStream.writeBytes("-1");
@@ -221,7 +221,6 @@ public class Server {
 
                 long size = sizeAndContent.size;
                 InputStream inputStream = sizeAndContent.inputStream;
-
 
 
                 outputStream.writeLong(size);
@@ -310,7 +309,7 @@ public class Server {
 
     /**
      * Returns (fileSize, InputStream of file) for a file for given name.
-     *
+     * <p>
      * Returns null in case of any mistake (such as IOexception or incorrect pathName).
      */
     @Nullable
