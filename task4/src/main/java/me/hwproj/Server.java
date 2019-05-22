@@ -74,6 +74,12 @@ public class Server {
         System.out.println("kekend");
     }
 
+    private byte[] getSubarray(byte[] buffer, int bytesRead) {
+        var result = new byte[bytesRead];
+        System.arraycopy(buffer, 0, result, 0, bytesRead);
+        return result;
+    }
+
     /**
      * Path to directory with server's files.
      */
@@ -141,10 +147,10 @@ public class Server {
                                         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                                         int bytesRead = channel.read(buffer);
 
-                                        var query = new String(buffer.array(), StandardCharsets.UTF_8);
+                                        var query = new String(getSubarray(buffer.array(), bytesRead), StandardCharsets.UTF_8);
                                         System.out.println("Query received: ");
                                         System.out.println(query);
-
+                                        receiveQuery(query, channel.socket());
                                     }
                                     keyIterator.remove();
                                 }
