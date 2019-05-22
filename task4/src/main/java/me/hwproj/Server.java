@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -14,13 +15,10 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.rmi.ServerError;
-import java.util.Iterator;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class Server {
@@ -32,7 +30,7 @@ public class Server {
 
     public static void main(String[] argc) throws IOException {
         if (argc.length == 0 || argc.length > 2) {
-            throw new IllegalArgumentException("Daun vvedi argumenti normalno");
+            throw new IllegalArgumentException("Wrong number of arguments: should be exactly one. Daun.");
         }
 
         String pathToDir = argc[0];
@@ -105,6 +103,78 @@ public class Server {
         } else {
             throw new ServerError("Server is already running", new Error());
         }
+    }
+
+    private void receiveQuery(String query, Socket socket) throws IOException {
+        try (DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
+                Scanner scanner = new Scanner(query)) {
+
+            if (!scanner.hasNextInt()) {
+                outputStream.writeBytes("-1");
+                return;
+            }
+
+            int command = scanner.nextInt();
+            if (command != 1 && command != 2) {
+                outputStream.writeBytes("-1");
+                return;
+            }
+
+            if (command == 1) {
+                String path = scanner.next();
+
+                if (scanner.hasNext()) {
+                    outputStream.writeBytes("-1");
+                    return;
+                }
+
+                var fileList = list(path);
+                if (fileList == null) {
+                    outputStream.writeBytes("-1");
+                    return;
+                }
+
+                outputStream.writeBytes(String.valueOf(fileList.size()));
+                for (StringAndBoolean stringAndBoolean : fileList) {
+                    outputStream.writeBytes(" " + stringAndBoolean.fileName + " ");
+                    outputStream.writeBytes(stringAndBoolean.isDirectory ? "1" : "0");
+                }
+            } else {
+                String path = scanner.next();
+
+                if (scanner.hasNext()) {
+                    outputStream.writeBytes("-1");
+                    return;
+                }
+
+                var sizeAndContent = get(path);
+                long size = sizeAndContent.size;
+                InputStream inputStream = sizeAndContent.inputStream;
+
+                if (size == -1 || inputStream == null) {
+                    outputStream.writeBytes("-1");
+                    return;
+                }
+
+                outputStream.writeBytes(String.valueOf(size));
+                outputStream.writeBytes(" ");
+
+                byte[] buffer = new byte[1024];
+                while (true) {
+                    int length = inputStream.read(buffer);
+                    if (length == -1 || length == 0) {
+                        break;
+                    }
+
+                    outputStream.write(buffer, 0, length);
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     public void stop() {
