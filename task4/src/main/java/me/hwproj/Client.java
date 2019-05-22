@@ -1,7 +1,7 @@
 package me.hwproj;
 
 public class Client {
-    
+
     Client() {
 
     }
