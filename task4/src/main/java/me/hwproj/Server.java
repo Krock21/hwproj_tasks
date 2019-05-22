@@ -1,5 +1,7 @@
 package me.hwproj;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,13 +26,40 @@ import java.util.List;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+
+/**
+ * Simple FTP-server.
+ */
 public class Server {
-    private static final int BUFFER_SIZE = 1000000;
+    /**
+     * Buffer for reading in socket.
+     */
+    private static final int BUFFER_SIZE = 1024;
+
+    /**
+     * Thread that accepts new clients.
+     */
     private Thread serverAcceptNewClientsThread;
+
+    /**
+     * Thread that reads data from client.
+     */
     private Thread serverReadFromClientsThread;
+
+    /**
+     * Selector lock.
+     */
     private final Lock selectorLock;
+
+    /**
+     * Selector for interacting with users.
+     */
     private Selector selector;
 
+    /**
+     * Must accept exactly one argument --- path to the directory with server's files. If so, starts FTP server
+     * on this directory.
+     */
     public static void main(String[] argc) throws Exception {
         if (argc.length != 1) {
             throw new IllegalArgumentException("Daun vvedi argumenti normalno");
@@ -43,9 +72,12 @@ public class Server {
         System.out.println("kekend");
     }
 
+    /**
+     * Path to directory with server's files.
+     */
     private String pathToDir;
 
-    public Server(String pathToDir) throws IOException {
+    private Server(String pathToDir) throws IOException {
         this.pathToDir = Paths.get(pathToDir).toAbsolutePath().toString();
         selectorLock = new ReentrantLock();
     }
@@ -127,6 +159,13 @@ public class Server {
         }
     }
 
+    /**
+     * Answers on user query and writes results to socket.
+     * If query is <1: Int> <path: String>, returns <size: Int> (<name: String> <is_dir: Boolean>)*
+     * If query is <2: Int> <path: String>, returns <size: Long> <content: Bytes>.
+     *
+     * Otherwise, or in case of any errors or wrong query parameters, writes "-1" to socket.
+     */
     private void receiveQuery(String query, Socket socket) throws IOException {
         try (DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
                 Scanner scanner = new Scanner(query)) {
@@ -189,15 +228,19 @@ public class Server {
 
                     outputStream.write(buffer, 0, length);
                 }
+
+                inputStream.close();
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-
     }
 
+    /**
+     * Stops the server and all active threads.
+     */
     public void stop() {
         serverAcceptNewClientsThread.interrupt();
         serverReadFromClientsThread.interrupt();
@@ -205,6 +248,9 @@ public class Server {
         serverReadFromClientsThread = null;
     }
 
+    /**
+     * Accepts new client to FTP server.
+     */
     public void join() throws Exception {
         if (serverAcceptNewClientsThread == null || serverReadFromClientsThread == null) {
             throw new Exception("Server is not started");
@@ -213,7 +259,11 @@ public class Server {
         serverReadFromClientsThread.join();
     }
 
-    public List<StringAndBoolean> list(String pathName) {
+    /**
+     * Lists all files in directory in format (fileName, isDirectory).
+     * Returns null in case of any mistakes (such as IOexception or wrong pathName).
+     */
+    private List<StringAndBoolean> list(String pathName) {
         var fileList = new ArrayList<StringAndBoolean>();
 
         Path path = Paths.get(pathToDir, pathName);
@@ -237,6 +287,9 @@ public class Server {
         }
     }
 
+    /**
+     * Class for storing (pathName, isDirectory).
+     */
     private static class StringAndBoolean {
         private String fileName;
         private boolean isDirectory;
@@ -247,7 +300,13 @@ public class Server {
         }
     }
 
-    public SizeAndContent get(String pathName) {
+    /**
+     * Returns (fileSize, InputStream of file) for a file for given name.
+     *
+     * Returns null in case of any mistake (such as IOexception or incorrect pathName).
+     */
+    @NotNull
+    private SizeAndContent get(@NotNull String pathName) {
         Path path = Paths.get(pathToDir, pathName);
         File file = path.toFile();
 
@@ -262,8 +321,14 @@ public class Server {
         }
     }
 
+    /**
+     * Result to return in case of mistake.
+     */
     private SizeAndContent errorResult = new SizeAndContent(-1, null);
 
+    /**
+     * Pair of (size, inputStream) corresponding to created file.
+     */
     private static class SizeAndContent {
         private long size;
         private InputStream inputStream;
