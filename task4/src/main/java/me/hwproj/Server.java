@@ -1,9 +1,12 @@
 package me.hwproj;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Server {
 
@@ -26,12 +29,18 @@ public class Server {
     }
 
     private SizeAndContent get(String pathName) {
-        Path path = FileSystems.getDefault().getPath(pathName);
-        if (!path.startsWith(pathToDir)) {
+        Path path = Paths.get(pathToDir, pathName);
+        File file = path.toFile();
+
+        if (!file.exists() || !file.isFile() || !file.canRead()) {
             return errorResult;
         }
 
-        file.toPath().startsWith()
+        try {
+            return new SizeAndContent(file.length(), new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            return errorResult;
+        }
     }
 
     private SizeAndContent errorResult = new SizeAndContent(-1, null);
