@@ -153,9 +153,10 @@ public class Client {
     private byte[] readAnswerFromServer() throws IOException {
         try (var stream = new ByteArrayOutputStream()) {
             var buffer = ByteBuffer.allocate(1024);
-            while (socketChannel.read(buffer) > 0) {
+            int bytesRead;
+            while ((bytesRead = socketChannel.read(buffer)) > 0) {
                 buffer.flip();
-                stream.write(buffer.array());
+                stream.write(getSubarray(buffer.array(), bytesRead));
                 buffer.clear();
             }
             return stream.toByteArray();
@@ -165,6 +166,12 @@ public class Client {
     /**
      * Writes request.
      */
+    private byte[] getSubarray(byte[] buffer, int bytesRead) {
+        var result = new byte[bytesRead];
+        System.arraycopy(buffer, 0, result, 0, bytesRead);
+        return result;
+    }
+    
     private ByteBuffer writeRequest(int requestCode, String request) {
         String data = requestCode + " " + request;
         ByteBuffer buffer = ByteBuffer.allocate(data.getBytes().length);
