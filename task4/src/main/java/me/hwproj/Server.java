@@ -19,22 +19,6 @@ public class Server {
         String pathToDir = argc[0];
         Server server = new Server(pathToDir);
         server.start();
-
-        var result = server.list("papka");
-        if (result == null) {
-            System.out.println("null");
-        } else {
-            for (var guy : result) {
-                System.out.println(guy.fileName + " " + guy.isDirectory);
-            }
-        }
-
-        var fileResult = server.get("papka/ralsei.png");
-        if (fileResult == null) {
-            System.out.println("null");
-        } else {
-            System.out.println(fileResult.size);
-        }
     }
 
     private String pathToDir;
