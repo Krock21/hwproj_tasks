@@ -12,8 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+/**
+ * Client server for interacting with ftp server.
+ */
 public class Client {
-
+    /**
+     * Socket channel!
+     */
     private SocketChannel socketChannel;
 
     public static void main(String[] args) throws IOException {
@@ -56,10 +61,16 @@ public class Client {
         }
     }
 
+    /**
+     * :thinking:
+     */
     public Client() {
 
     }
 
+    /**
+     * Connect to ftp server.
+     */
     public void connect(String serverIp, int serverPort) throws IOException {
         socketChannel = SocketChannel.open();
         socketChannel.socket().setTcpNoDelay(true);
@@ -70,15 +81,25 @@ public class Client {
         }
     }
 
+    /**
+     * Disconnect from ftp server.
+     */
     public void disconnect() throws IOException {
         socketChannel.close();
     }
 
+    /**
+     * Runs 'list' command that accept list of files that exists on FTP server by path to given directory.
+     * Accepts -1 in any sort of mistake.
+     */
     public List<File> executeList(String path) throws IOException {
         sendRequest(writeRequest(1, path));
         return generateAnswerForList(readAnswerFromServer());
     }
 
+    /**
+     * Generate result answer for received bytes.
+     */
     private List<File> generateAnswerForList(byte[] bytes) {
         var string = new String(bytes, StandardCharsets.UTF_8);
         String[] splittedResponse = string.split(" ");
@@ -94,11 +115,18 @@ public class Client {
         return result;
     }
 
+    /**
+     * Runs get command.
+     * Accepts -1 in any sort of mistake.
+     */
     public byte[] executeGet(String path) throws IOException {
         sendRequest(writeRequest(2, path));
         return generateAnswerForGet(readAnswerFromServer());
     }
 
+    /**
+     * Generate result answer for received bytes.
+     */
     private byte[] generateAnswerForGet(byte[] bytes) throws IOException {
         try (DataInputStream is = new DataInputStream(new ByteArrayInputStream(bytes))) {
             long size = is.readLong();
@@ -109,6 +137,9 @@ public class Client {
         }
     }
 
+    /**
+     * Sends request to server.
+     */
     private void sendRequest(ByteBuffer buffer) throws IOException {
         while (buffer.hasRemaining()) {
             socketChannel.write(buffer);
@@ -116,6 +147,9 @@ public class Client {
         buffer.clear();
     }
 
+    /**
+     * Reads result answer from server on request.
+     */
     private byte[] readAnswerFromServer() throws IOException {
         try (var stream = new ByteArrayOutputStream()) {
             var buffer = ByteBuffer.allocate(1024);
@@ -128,6 +162,9 @@ public class Client {
         }
     }
 
+    /**
+     * Writes request.
+     */
     private ByteBuffer writeRequest(int requestCode, String request) {
         String data = requestCode + " " + request;
         ByteBuffer buffer = ByteBuffer.allocate(data.getBytes().length);
