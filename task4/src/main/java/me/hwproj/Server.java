@@ -1,6 +1,7 @@
 package me.hwproj;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,9 +76,10 @@ public class Server {
     /**
      * Path to directory with server's files.
      */
+    @NotNull
     private String pathToDir;
 
-    private Server(String pathToDir) throws IOException {
+    private Server(@NotNull String pathToDir) throws IOException {
         this.pathToDir = Paths.get(pathToDir).toAbsolutePath().toString();
         selectorLock = new ReentrantLock();
     }
@@ -166,7 +168,7 @@ public class Server {
      *
      * Otherwise, or in case of any errors or wrong query parameters, writes "-1" to socket.
      */
-    private void receiveQuery(String query, Socket socket) throws IOException {
+    private void receiveQuery(@NotNull String query, @NotNull Socket socket) throws IOException {
         try (DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
                 Scanner scanner = new Scanner(query)) {
 
@@ -209,13 +211,16 @@ public class Server {
                 }
 
                 var sizeAndContent = get(path);
-                long size = sizeAndContent.size;
-                InputStream inputStream = sizeAndContent.inputStream;
 
-                if (size == -1 || inputStream == null) {
+                if (sizeAndContent == null) {
                     outputStream.writeLong(-1);
                     return;
                 }
+
+                long size = sizeAndContent.size;
+                InputStream inputStream = sizeAndContent.inputStream;
+
+
 
                 outputStream.writeLong(size);
 
@@ -263,7 +268,8 @@ public class Server {
      * Lists all files in directory in format (fileName, isDirectory).
      * Returns null in case of any mistakes (such as IOexception or wrong pathName).
      */
-    private List<StringAndBoolean> list(String pathName) {
+    @Nullable
+    private List<StringAndBoolean> list(@NotNull String pathName) {
         var fileList = new ArrayList<StringAndBoolean>();
 
         Path path = Paths.get(pathToDir, pathName);
@@ -305,26 +311,21 @@ public class Server {
      *
      * Returns null in case of any mistake (such as IOexception or incorrect pathName).
      */
-    @NotNull
+    @Nullable
     private SizeAndContent get(@NotNull String pathName) {
         Path path = Paths.get(pathToDir, pathName);
         File file = path.toFile();
 
         if (!file.exists() || !file.isFile() || !file.canRead()) {
-            return errorResult;
+            return null;
         }
 
         try {
             return new SizeAndContent(file.length(), new FileInputStream(file));
         } catch (FileNotFoundException e) {
-            return errorResult;
+            return null;
         }
     }
-
-    /**
-     * Result to return in case of mistake.
-     */
-    private SizeAndContent errorResult = new SizeAndContent(-1, null);
 
     /**
      * Pair of (size, inputStream) corresponding to created file.
