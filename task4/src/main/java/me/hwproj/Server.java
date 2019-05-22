@@ -19,34 +19,47 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class Server {
     private static final int BUFFER_SIZE = 1000000;
     private Thread serverAcceptNewClientsThread;
     private Thread serverReadFromClientsThread;
-    private Lock selectorLock;
+    private final Lock selectorLock;
     private Selector selector;
 
-    public static void main(String[] argc) throws IOException {
-        if (argc.length == 0 || argc.length > 2) {
-            throw new IllegalArgumentException("Wrong number of arguments: should be exactly one. Daun.");
+    public static void main(String[] argc) throws Exception {
+        if (argc.length != 1) {
+            throw new IllegalArgumentException("Daun vvedi argumenti normalno");
         }
 
         String pathToDir = argc[0];
         Server server = new Server(pathToDir);
         server.start();
+        server.join();
+        System.out.println("kekend");
     }
 
     private String pathToDir;
 
     public Server(String pathToDir) throws IOException {
         this.pathToDir = Paths.get(pathToDir).toAbsolutePath().toString();
-        selector = Selector.open();
+        selectorLock = new ReentrantLock();
     }
 
-    public void start() throws ServerError {
+    /**
+     * starts the Server in 2 new threads. Use stop() to stop it.
+     *
+     * @throws IOException if can't create Selector
+     */
+    public void start() throws IOException {
         if (serverAcceptNewClientsThread == null && serverReadFromClientsThread == null) {
+            selectorLock.lock();
+            selector = Selector.open();
+            selectorLock.unlock();
             serverAcceptNewClientsThread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -54,13 +67,14 @@ public class Server {
                         ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
                         serverSocketChannel.socket().bind(new InetSocketAddress(4242));
                         serverSocketChannel.configureBlocking(false);
-                        while (true) {
+                        while (!Thread.interrupted()) {
                             SocketChannel socketChannel = serverSocketChannel.accept();
                             if (socketChannel != null) {//do something with socketChannel...}}
                                 // new client with socketChannel
                                 socketChannel.configureBlocking(false);
+                                socketChannel.socket().setTcpNoDelay(true);
                                 selectorLock.lock();
-                                SelectionKey key = socketChannel.register(selector, SelectionKey.OP_READ);
+                                socketChannel.register(selector, SelectionKey.OP_READ);
                                 selectorLock.unlock();
                             }
                         }
@@ -74,26 +88,34 @@ public class Server {
                 @Override
                 public void run() {
                     try {
-                        while (true) {
+                        while (!Thread.interrupted()) {
                             selectorLock.lock();
                             Selector currentSelector = selector;
                             selectorLock.unlock();
                             int readyChannelsCount = currentSelector.select(1000);
                             if (readyChannelsCount != 0) {
-                                Set<SelectionKey> selectedKeys = selector.selectedKeys();
+                                selectorLock.lock();
+                                Set<SelectionKey> selectedKeys = currentSelector.selectedKeys();
+                                selectorLock.unlock();
                                 Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
                                 while (keyIterator.hasNext()) {
                                     SelectionKey key = keyIterator.next();
                                     if (key.isReadable()) {// a channel is ready for reading
                                         // TODO
-                                        SocketChannel channel = (SocketChannel) key.channel(); // ??????????????????????????????????/
+                                        SocketChannel channel = (SocketChannel) key.channel(); // ??????????????????????????????????
                                         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
                                         int bytesRead = channel.read(buffer);
+                                        if (bytesRead % 2 != 0) {
+                                            throw new IOException();
+                                        }
+                                        String query = buffer.toString().substring(0, bytesRead / 2);
                                     }
                                     keyIterator.remove();
                                 }
                             }
                         }
+                        serverAcceptNewClientsThread.start();
+                        serverReadFromClientsThread.start();
                     } catch (IOException e) {
                         System.err.println("IOException in serverReadFromClientsThread");
                         System.exit(-1);
@@ -178,9 +200,19 @@ public class Server {
     }
 
     public void stop() {
-
+        serverAcceptNewClientsThread.interrupt();
+        serverReadFromClientsThread.interrupt();
+        serverAcceptNewClientsThread = null;
+        serverReadFromClientsThread = null;
     }
 
+    public void join() throws Exception {
+        if (serverAcceptNewClientsThread == null || serverReadFromClientsThread == null) {
+            throw new Exception("Server is not started");
+        }
+        serverAcceptNewClientsThread.join();
+        serverReadFromClientsThread.join();
+    }
 
     public List<StringAndBoolean> list(String pathName) {
         var fileList = new ArrayList<StringAndBoolean>();
