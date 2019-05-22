@@ -25,7 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class Server {
-    private static final int BUFFER_SIZE = 1000000;
+    private static final int BUFFER_SIZE = 1024;
     private Thread serverAcceptNewClientsThread;
     private Thread serverReadFromClientsThread;
     private final Lock selectorLock;
@@ -33,8 +33,9 @@ public class Server {
 
     public static void main(String[] argc) throws Exception {
         if (argc.length != 1) {
-            throw new IllegalArgumentException("Daun vvedi argumenti normalno");
+            throw new IllegalArgumentException("exactly 1 argument pls");
         }
+        System.out.println("kekstart");
 
         String pathToDir = argc[0];
         Server server = new Server(pathToDir);
@@ -109,19 +110,21 @@ public class Server {
                                             throw new IOException();
                                         }
                                         String query = buffer.toString().substring(0, bytesRead / 2);
+                                        System.out.println("Query received: ");
+                                        System.out.println(query);
                                     }
                                     keyIterator.remove();
                                 }
                             }
                         }
-                        serverAcceptNewClientsThread.start();
-                        serverReadFromClientsThread.start();
                     } catch (IOException e) {
                         System.err.println("IOException in serverReadFromClientsThread");
                         System.exit(-1);
                     }
                 }
             });
+            serverAcceptNewClientsThread.start();
+            serverReadFromClientsThread.start();
         } else {
             throw new ServerError("Server is already running", new Error());
         }
@@ -129,7 +132,7 @@ public class Server {
 
     private void receiveQuery(String query, Socket socket) throws IOException {
         try (DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-                Scanner scanner = new Scanner(query)) {
+             Scanner scanner = new Scanner(query)) {
 
             if (!scanner.hasNextInt()) {
                 outputStream.writeBytes("-1");
