@@ -16,33 +16,22 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 
-/**
- * Simple FTP-server.
- */
+/** Simple FTP-server that allows showing list of files in a directory and loading files */
 public class Server {
-    /**
-     * Thread that accepts new clients.
-     */
+    /** Thread that accepts new clients */
     private Thread serverAcceptNewClientsThread;
-
-    /**
-     * Thread that reads data from client.
-     */
+    /** Thread that reads data from client */
     private Thread serverReadFromClientsThread;
-
-    /**
-     * Selector lock.
-     */
     private final Lock selectorLock;
-
-    /**
-     * Selector for interacting with users.
-     */
+    /** Selector for interacting with users */
     private Selector selector;
+    /** Path to directory with server's files */
+    @NotNull
+    private String pathToDir;
 
     /**
-     * Must accept exactly one argument --- path to the directory with server's files. If so, starts FTP server
-     * on this directory.
+     * Must accept exactly one argument --- path to the directory with server's files.
+     * If so, starts FTP server on this directory.
      */
     public static void main(String[] argc) throws Exception {
         if (argc.length != 1) {
@@ -55,20 +44,13 @@ public class Server {
         server.join();
     }
 
-    /**
-     * Path to directory with server's files.
-     */
-    @NotNull
-    private String pathToDir;
-
-    private Server(@NotNull String pathToDir) throws IOException {
+    private Server(@NotNull String pathToDir) {
         this.pathToDir = Paths.get(pathToDir).toAbsolutePath().toString();
         selectorLock = new ReentrantLock();
     }
 
     /**
-     * starts the Server in 2 new threads. Use stop() to stop it.
-     *
+     * Starts the Server in 2 new threads. Use stop() to stop it.
      * @throws IOException if can't create Selector
      */
     public void start() throws IOException {
@@ -123,9 +105,7 @@ public class Server {
         serverReadFromClientsThread.start();
     }
 
-    /**
-     * Stops the server and all active threads.
-     */
+    /** Stops the server and all active threads */
     public void stop() {
         serverAcceptNewClientsThread.interrupt();
         serverReadFromClientsThread.interrupt();
@@ -133,9 +113,7 @@ public class Server {
         serverReadFromClientsThread = null;
     }
 
-    /**
-     * Accepts new client to FTP server.
-     */
+    /** Accepts new client to FTP server */
     private void join() throws Exception {
         if (serverAcceptNewClientsThread == null || serverReadFromClientsThread == null) {
             throw new Exception("Server is not started");
@@ -149,8 +127,8 @@ public class Server {
      * Returns null in case of any mistakes (such as IOexception or wrong pathName).
      */
     @Nullable
-    public List<FileDescriprion> list(@NotNull String pathName) {
-        var fileList = new ArrayList<FileDescriprion>();
+    public List<FileDescription> list(@NotNull String pathName) {
+        var fileList = new ArrayList<FileDescription>();
 
         Path path = Paths.get(pathToDir, pathName);
         File file = path.toFile();
@@ -162,7 +140,7 @@ public class Server {
         for (var subFile : Objects.requireNonNull(file.listFiles())) {
             boolean isDirectory = subFile.isDirectory();
             String fileName = subFile.getName();
-            fileList.add(new FileDescriprion(fileName, isDirectory));
+            fileList.add(new FileDescription(fileName, isDirectory));
         }
 
         return fileList;
@@ -171,7 +149,7 @@ public class Server {
     /**
      * Returns (fileSize, InputStream of file) for a file for given name.
      * <p>
-     * Returns null in case of any mistake (such as IOexception or incorrect pathName).
+     * Returns null in case of any mistake (such as IOexception or incorrect pathName)
      */
     @Nullable
     public SizeAndContent get(@NotNull String pathName) {
@@ -189,9 +167,7 @@ public class Server {
         }
     }
 
-    /**
-     * Pair of (size, inputStream) corresponding to created file.
-     */
+    /** Pair of (size, inputStream) corresponding to created file */
     public static class SizeAndContent {
         private long size;
         @NotNull private InputStream inputStream;

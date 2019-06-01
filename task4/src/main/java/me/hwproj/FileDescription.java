@@ -1,10 +1,11 @@
 package me.hwproj;
 
-public class FileDescriprion {
+/** Stores information about file: path to it and if it is a directory */
+public class FileDescription {
     private String path;
     private boolean isDirectory;
 
-    public FileDescriprion(String file, boolean isDirectory) {
+    public FileDescription(String file, boolean isDirectory) {
         this.path = file;
         this.isDirectory = isDirectory;
     }

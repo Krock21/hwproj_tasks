@@ -1,20 +1,22 @@
 package me.hwproj;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.List;
 
+/** Communication between server and client */
 public class ClientData {
     private static final int BUFFER_SIZE = 1024;
     private static final int LONG_SIZE = 8;
 
     private boolean readingHead = true;
+    /** Bytes needed to read to change stage (start reading body or answer a query) */
     private long toReadSize = LONG_SIZE;
     @NotNull private ByteBuffer buffer = ByteBuffer.allocate(LONG_SIZE);
+    /** Output stream where body of message is stored */
     private ByteArrayOutputStream outputStream = null;
     @NotNull private SocketChannel socketChannel;
     @NotNull private Server server;
@@ -24,6 +26,11 @@ public class ClientData {
         this.server = server;
     }
 
+    /**
+     * Reads data from socket.
+     * Reads only until the end of stage (i.e. if can read 100 bytes, but haven't read head,
+     *      would read only 8 bytes)
+     */
     public void read() throws IOException {
         if (readingHead) {
             toReadSize -= socketChannel.read(buffer);
@@ -58,6 +65,7 @@ public class ClientData {
         }
     }
 
+    /** Parses query id, executes it and sends response */
     private void executeQuery(@NotNull byte[] query) throws IOException {
         try (var dataInputStream = new DataInputStream(new ByteArrayInputStream(query))) {
             int queryId = dataInputStream.readInt();
@@ -71,8 +79,15 @@ public class ClientData {
         }
     }
 
+    /**
+     * Executes "List" query
+     * Respond format: [long: messageSize][int: size]([String: filename][boolean: isDirectory])*
+     *      messageSize -- number of bytes in message's body
+     *      size -- number of files in directory
+     * size = -1 if file is not presented
+     */
     private void executeList(@NotNull String path) throws IOException {
-        List<FileDescriprion> files = server.list(path);
+        List<FileDescription> files = server.list(path);
         if (files == null) {
             sendResponse(generateReject());
             return;
@@ -92,6 +107,12 @@ public class ClientData {
         }
     }
 
+    /**
+     * Executes "Get" query
+     * Respond format: [long: size][bytes: file]
+     *      size -- number of bytes in a file
+     * size = -1 if file is not presented
+     */
     private void executeGet(@NotNull String path) throws IOException {
         Server.SizeAndContent fileToSend = server.get(path);
         long size = -1;
@@ -117,17 +138,20 @@ public class ClientData {
         }
     }
 
+    /** Generates message with size = -1 for "List" query */
     @NotNull
     private ByteBuffer[] generateReject() throws IOException {
         return MessageGenerator.generateMessage(-1, null);
     }
 
+    /** Sends response to client */
     private void sendResponse(@NotNull ByteBuffer[] buffers) throws IOException {
         while (hasRemaining(buffers)) {
             socketChannel.write(buffers);
         }
     }
 
+    /** Checks if some of buffers has remaining bytes */
     private boolean hasRemaining(@NotNull ByteBuffer[] buffers) {
         for (var buffer : buffers) {
             if (buffer.hasRemaining()) {
