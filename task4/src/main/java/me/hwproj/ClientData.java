@@ -1,6 +1,7 @@
 package me.hwproj;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -13,10 +14,10 @@ public class ClientData {
 
     private boolean readingHead = true;
     private long toReadSize = LONG_SIZE;
-    private ByteBuffer buffer = ByteBuffer.allocate(LONG_SIZE);
+    @NotNull private ByteBuffer buffer = ByteBuffer.allocate(LONG_SIZE);
     private ByteArrayOutputStream outputStream = null;
-    private SocketChannel socketChannel;
-    private Server server;
+    @NotNull private SocketChannel socketChannel;
+    @NotNull private Server server;
 
     public ClientData(@NotNull SocketChannel channel, @NotNull Server server) {
         socketChannel = channel;
@@ -57,7 +58,7 @@ public class ClientData {
         }
     }
 
-    private void executeQuery(byte[] query) throws IOException {
+    private void executeQuery(@NotNull byte[] query) throws IOException {
         try (var dataInputStream = new DataInputStream(new ByteArrayInputStream(query))) {
             int queryId = dataInputStream.readInt();
             String path = dataInputStream.readUTF();
@@ -91,10 +92,32 @@ public class ClientData {
         }
     }
 
-    private void executeGet(@NotNull String path) {
+    private void executeGet(@NotNull String path) throws IOException {
+        Server.SizeAndContent fileToSend = server.get(path);
+        long size = -1;
+        if (fileToSend != null) {
+            size = fileToSend.getSize();
+        }
+        try (var byteArrayOutputStream = new ByteArrayOutputStream();
+             var dataOutputStream = new DataOutputStream(byteArrayOutputStream)) {
+            dataOutputStream.writeLong(size);
+            dataOutputStream.flush();
+            byteArrayOutputStream.flush();
 
+            sendResponse(new ByteBuffer[]{ByteBuffer.wrap(byteArrayOutputStream.toByteArray())});
+        }
+        if (fileToSend == null) {
+            return;
+        }
+        var buffer = new byte[BUFFER_SIZE];
+        int bytesRead;
+        while ((bytesRead = fileToSend.getInputStream().read(buffer)) > 0) {
+            var byteBuffer = ByteBuffer.wrap(buffer, 0, bytesRead);
+            sendResponse(new ByteBuffer[]{byteBuffer});
+        }
     }
 
+    @NotNull
     private ByteBuffer[] generateReject() throws IOException {
         return MessageGenerator.generateMessage(-1, null);
     }

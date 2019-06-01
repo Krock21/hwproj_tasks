@@ -5,19 +5,15 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 
 /**
@@ -140,7 +136,7 @@ public class Server {
     /**
      * Accepts new client to FTP server.
      */
-    public void join() throws Exception {
+    private void join() throws Exception {
         if (serverAcceptNewClientsThread == null || serverReadFromClientsThread == null) {
             throw new Exception("Server is not started");
         }
@@ -178,7 +174,7 @@ public class Server {
      * Returns null in case of any mistake (such as IOexception or incorrect pathName).
      */
     @Nullable
-    private SizeAndContent get(@NotNull String pathName) {
+    public SizeAndContent get(@NotNull String pathName) {
         Path path = Paths.get(pathToDir, pathName);
         File file = path.toFile();
 
@@ -196,13 +192,22 @@ public class Server {
     /**
      * Pair of (size, inputStream) corresponding to created file.
      */
-    private static class SizeAndContent {
+    public static class SizeAndContent {
         private long size;
-        private InputStream inputStream;
+        @NotNull private InputStream inputStream;
 
-        private SizeAndContent(long size, InputStream inputStream) {
+        private SizeAndContent(long size, @NotNull InputStream inputStream) {
             this.size = size;
             this.inputStream = inputStream;
+        }
+
+        public long getSize() {
+            return size;
+        }
+
+        @NotNull
+        public InputStream getInputStream() {
+            return inputStream;
         }
     }
 }

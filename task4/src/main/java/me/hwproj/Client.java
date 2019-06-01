@@ -47,23 +47,19 @@ public class Client {
                         System.out.println(file.getPath() + " " + file.getIsDirectory());
                     }
                 } else if (requestCode == 2) {
-                    /*System.out.println("Start executing get");
-                    var result = client.executeGet(path);
-                    System.out.println("Get executed. Here is the result:");
-                    System.out.println(new String(result, StandardCharsets.UTF_8));*/
-                    // TODO
+                    System.out.println("Write path where to store file");
+                    String pathToStore = in.nextLine();
+                    System.out.println("Start executing get");
+                    client.executeGet(path, pathToStore);
+                    System.out.println("Get executed. File stored to " + pathToStore);
                 }
             } catch (IllegalArgumentException | InputMismatchException e) {
-                System.out.println(e.getMessage());
+                System.out.println("Error: " + e.getMessage());
             }
         }
     }
 
-    public Client() {
-
-    }
-
-    public void connect(String serverIp, int serverPort) throws IOException {
+    public void connect(@NotNull String serverIp, int serverPort) throws IOException {
         socketChannel = SocketChannel.open();
         socketChannel.socket().setTcpNoDelay(true);
         socketChannel.configureBlocking(false);
@@ -77,6 +73,7 @@ public class Client {
         socketChannel.close();
     }
 
+    @NotNull
     public List<FileDescriprion> executeList(String path) throws IOException {
         sendRequest(writeRequest(1, path));
         try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
@@ -85,7 +82,7 @@ public class Client {
         }
     }
 
-    private void readResponse(OutputStream outputStream) throws IOException {
+    private void readResponse(@NotNull OutputStream outputStream) throws IOException {
         long bytesReadHead = 0;
         var buffer = ByteBuffer.allocate(8); // buffer to read head -- size of response
         while (bytesReadHead < 8) { // Haven't read head
@@ -93,6 +90,9 @@ public class Client {
         }
         try (var headInputStream = new DataInputStream(new ByteArrayInputStream(buffer.array()))) {
             long needToRead = headInputStream.readLong();
+            if (needToRead == -1) {
+                throw new IllegalArgumentException("Get returned -1");
+            }
             buffer = ByteBuffer.allocate(BUFFER_SIZE);
             // Reading body
             while (needToRead > 0) {
@@ -122,18 +122,14 @@ public class Client {
         }
     }
 
-    public void executeGet(String path, String pathToStore) throws IOException {
+    public void executeGet(@NotNull String path, @NotNull String pathToStore) throws IOException {
         sendRequest(writeRequest(2, path));
-        //generateAnswerForGet(readAnswerFromServer());
-        // TODO
+        try (var fileOutputStream = new FileOutputStream(pathToStore)) {
+            readResponse(fileOutputStream);
+        }
     }
 
-    private byte[] generateAnswerForGet(byte[] bytes) throws IOException {
-        // TODO
-        return null;
-    }
-
-    private void sendRequest(ByteBuffer[] buffers) throws IOException {
+    private void sendRequest(@NotNull ByteBuffer[] buffers) throws IOException {
         while (buffers[0].hasRemaining() || buffers[1].hasRemaining()) {
             socketChannel.write(buffers);
         }
