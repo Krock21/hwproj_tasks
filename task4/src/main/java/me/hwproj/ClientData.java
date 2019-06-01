@@ -81,7 +81,7 @@ public class ClientData {
 
     /**
      * Executes "List" query
-     * Respond format: [long: messageSize][int: size]([String: filename][boolean: isDirectory])*
+     * Response format: [long: messageSize][int: size]([String: filename][boolean: isDirectory])*
      *      messageSize -- number of bytes in message's body
      *      size -- number of files in directory
      * size = -1 if file is not presented
@@ -109,7 +109,7 @@ public class ClientData {
 
     /**
      * Executes "Get" query
-     * Respond format: [long: size][bytes: file]
+     * Response format: [long: size][bytes: file]
      *      size -- number of bytes in a file
      * size = -1 if file is not presented
      */
