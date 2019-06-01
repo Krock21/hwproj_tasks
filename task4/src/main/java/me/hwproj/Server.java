@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -28,6 +30,11 @@ public class Server {
     /** Path to directory with server's files */
     @NotNull
     private String pathToDir;
+
+    /**
+     * Port of the server for user to connect.
+     */
+    private static final int SERVER_PORT = 4242;
 
     /**
      * Must accept exactly one argument --- path to the directory with server's files.
@@ -58,7 +65,7 @@ public class Server {
         serverAcceptNewClientsThread = new Thread(() -> {
             try {
                 ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-                serverSocketChannel.socket().bind(new InetSocketAddress(4242));
+                serverSocketChannel.socket().bind(new InetSocketAddress(SERVER_PORT));
                 serverSocketChannel.configureBlocking(false);
                 while (!Thread.interrupted()) {
                     SocketChannel socketChannel = serverSocketChannel.accept();
@@ -103,6 +110,16 @@ public class Server {
         });
         serverAcceptNewClientsThread.start();
         serverReadFromClientsThread.start();
+
+        String ip;
+        try (final DatagramSocket socket = new DatagramSocket()) {
+            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+            ip = socket.getLocalAddress().getHostAddress();
+        } catch (Exception e) {
+            ip = "UNKNOWN";
+        }
+
+        System.out.println("Ok. Server started. Server IP is " + ip + ", server port is " + SERVER_PORT + ".");
     }
 
     /** Stops the server and all active threads */
@@ -111,6 +128,8 @@ public class Server {
         serverReadFromClientsThread.interrupt();
         serverAcceptNewClientsThread = null;
         serverReadFromClientsThread = null;
+
+        System.out.println("Server stopped.");
     }
 
     /** Accepts new client to FTP server */
