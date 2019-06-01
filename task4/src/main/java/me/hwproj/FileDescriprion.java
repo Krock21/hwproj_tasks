@@ -1,10 +1,10 @@
 package me.hwproj;
 
-public class File {
+public class FileDescriprion {
     private String path;
     private boolean isDirectory;
 
-    public File(String file, boolean isDirectory) {
+    public FileDescriprion(String file, boolean isDirectory) {
         this.path = file;
         this.isDirectory = isDirectory;
     }

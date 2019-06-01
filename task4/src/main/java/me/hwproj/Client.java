@@ -1,28 +1,30 @@
 package me.hwproj;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.List;
 import java.util.Scanner;
 
 public class Client {
 
     private SocketChannel socketChannel;
+    private static final int BUFFER_SIZE = 1024;
 
     public static void main(String[] args) throws IOException {
+        if (args.length != 2) {
+            throw new IllegalArgumentException("Should take two arguments: server ip and server port");
+        }
         var client = new Client();
         var in = new Scanner(System.in);
-        System.out.println("Write ip address");
-        String serverIp = in.nextLine();
-        System.out.println("Write port");
-        int serverPort = in.nextInt();
+        String serverIp = args[0];
+        int serverPort = Integer.valueOf(args[1]);
+        System.out.println("Server ip: " + serverIp + " port: " + serverPort);
         System.out.println("Start connecting");
         client.connect(serverIp, serverPort);
         System.out.println("Successfully connected!");
@@ -45,12 +47,13 @@ public class Client {
                         System.out.println(file.getPath() + " " + file.getIsDirectory());
                     }
                 } else if (requestCode == 2) {
-                    System.out.println("Start executing get");
+                    /*System.out.println("Start executing get");
                     var result = client.executeGet(path);
                     System.out.println("Get executed. Here is the result:");
-                    System.out.println(new String(result, StandardCharsets.UTF_8));
+                    System.out.println(new String(result, StandardCharsets.UTF_8));*/
+                    // TODO
                 }
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalArgumentException | InputMismatchException e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -74,73 +77,70 @@ public class Client {
         socketChannel.close();
     }
 
-    public List<File> executeList(String path) throws IOException {
+    public List<FileDescriprion> executeList(String path) throws IOException {
         sendRequest(writeRequest(1, path));
-        return generateAnswerForList(readAnswerFromServer());
+        try (var byteArrayOutputStream = new ByteArrayOutputStream()) {
+            readResponse(byteArrayOutputStream);
+            return generateAnswerForList(byteArrayOutputStream.toByteArray());
+        }
     }
 
-    private List<File> generateAnswerForList(byte[] bytes) {
-        var string = new String(bytes, StandardCharsets.UTF_8);
-        String[] splittedResponse = string.split(" ");
-        int size = Integer.valueOf(splittedResponse[0]);
-        if (size == -1) {
-            throw new IllegalArgumentException("List returned -1");
+    private void readResponse(OutputStream outputStream) throws IOException {
+        long bytesReadHead = 0;
+        var buffer = ByteBuffer.allocate(8); // buffer to read head -- size of response
+        while (bytesReadHead < 8) { // Haven't read head
+            bytesReadHead += socketChannel.read(buffer);
         }
-        assert splittedResponse.length == size * 2 + 1;
-        var result = new ArrayList<File>();
-        for (int i = 1; i < splittedResponse.length; i += 2) {
-            result.add(new File(splittedResponse[i], splittedResponse[i + 1].equals("1")));
+        try (var headInputStream = new DataInputStream(new ByteArrayInputStream(buffer.array()))) {
+            long needToRead = headInputStream.readLong();
+            buffer = ByteBuffer.allocate(BUFFER_SIZE);
+            // Reading body
+            while (needToRead > 0) {
+                int bytesRead = socketChannel.read(buffer);
+                needToRead -= bytesRead;
+                outputStream.write(buffer.array(), 0, bytesRead);
+                buffer.clear();
+            }
+            outputStream.flush();
         }
-        return result;
     }
 
-    public byte[] executeGet(String path) throws IOException {
+    @NotNull
+    private List<FileDescriprion> generateAnswerForList(@NotNull byte[] bytes) throws IOException {
+        try (var dataInputStream = new DataInputStream(new ByteArrayInputStream(bytes))) {
+            int size = dataInputStream.readInt();
+            if (size == -1) {
+                throw new IllegalArgumentException("List returned -1");
+            }
+            var result = new ArrayList<FileDescriprion>();
+            for (int i = 0; i < size; ++i) {
+                String fileName = dataInputStream.readUTF();
+                boolean isDirectory = dataInputStream.readBoolean();
+                result.add(new FileDescriprion(fileName, isDirectory));
+            }
+            return result;
+        }
+    }
+
+    public void executeGet(String path, String pathToStore) throws IOException {
         sendRequest(writeRequest(2, path));
-        return generateAnswerForGet(readAnswerFromServer());
+        //generateAnswerForGet(readAnswerFromServer());
+        // TODO
     }
 
     private byte[] generateAnswerForGet(byte[] bytes) throws IOException {
-        try (DataInputStream is = new DataInputStream(new ByteArrayInputStream(bytes))) {
-            long size = is.readLong();
-            if (size == -1) {
-                throw new IllegalArgumentException("Get returned -1");
-            }
-            return is.readAllBytes();
+        // TODO
+        return null;
+    }
+
+    private void sendRequest(ByteBuffer[] buffers) throws IOException {
+        while (buffers[0].hasRemaining() || buffers[1].hasRemaining()) {
+            socketChannel.write(buffers);
         }
     }
 
-    private void sendRequest(ByteBuffer buffer) throws IOException {
-        while (buffer.hasRemaining()) {
-            socketChannel.write(buffer);
-        }
-        buffer.clear();
-    }
-
-    private byte[] readAnswerFromServer() throws IOException {
-        try (var stream = new ByteArrayOutputStream()) {
-            var buffer = ByteBuffer.allocate(1024);
-            int bytesRead;
-            while ((bytesRead = socketChannel.read(buffer)) > 0) {
-                buffer.flip();
-                stream.write(getSubarray(buffer.array(), bytesRead));
-                buffer.clear();
-            }
-            return stream.toByteArray();
-        }
-    }
-
-    private byte[] getSubarray(byte[] buffer, int bytesRead) {
-        var result = new byte[bytesRead];
-        System.arraycopy(buffer, 0, result, 0, bytesRead);
-        return result;
-    }
-
-    private ByteBuffer writeRequest(int requestCode, String request) {
-        String data = requestCode + " " + request;
-        ByteBuffer buffer = ByteBuffer.allocate(data.getBytes().length);
-        buffer.clear();
-        buffer.put(data.getBytes(StandardCharsets.UTF_8));
-        buffer.flip();
-        return buffer;
+    @NotNull
+    private ByteBuffer[] writeRequest(int requestCode, @NotNull String request) throws IOException {
+        return MessageGenerator.generateMessage(requestCode, request);
     }
 }

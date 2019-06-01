@@ -3,28 +3,19 @@ package me.hwproj;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.rmi.ServerError;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -33,11 +24,6 @@ import java.util.stream.Collectors;
  * Simple FTP-server.
  */
 public class Server {
-    /**
-     * Buffer for reading in socket.
-     */
-    private static final int BUFFER_SIZE = 1024;
-
     /**
      * Thread that accepts new clients.
      */
@@ -64,20 +50,13 @@ public class Server {
      */
     public static void main(String[] argc) throws Exception {
         if (argc.length != 1) {
-            throw new IllegalArgumentException("Daun vvedi argumenti normalno");
+            throw new IllegalArgumentException("Should take one argument: path to root");
         }
 
         String pathToDir = argc[0];
         Server server = new Server(pathToDir);
         server.start();
         server.join();
-        System.out.println("kekend");
-    }
-
-    private byte[] getSubarray(byte[] buffer, int bytesRead) {
-        var result = new byte[bytesRead];
-        System.arraycopy(buffer, 0, result, 0, bytesRead);
-        return result;
     }
 
     /**
@@ -97,157 +76,55 @@ public class Server {
      * @throws IOException if can't create Selector
      */
     public void start() throws IOException {
-        if (serverAcceptNewClientsThread == null && serverReadFromClientsThread == null) {
-            selectorLock.lock();
-            selector = Selector.open();
-            selectorLock.unlock();
-            serverAcceptNewClientsThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-                        serverSocketChannel.socket().bind(new InetSocketAddress(4242));
-                        serverSocketChannel.configureBlocking(false);
-                        while (!Thread.interrupted()) {
-                            SocketChannel socketChannel = serverSocketChannel.accept();
-                            if (socketChannel != null) {//do something with socketChannel...}}
-                                // new client with socketChannel
-                                socketChannel.configureBlocking(false);
-                                socketChannel.socket().setTcpNoDelay(true);
-                                selectorLock.lock();
-                                socketChannel.register(selector, SelectionKey.OP_READ);
-                                selectorLock.unlock();
+        selector = Selector.open();
+        serverAcceptNewClientsThread = new Thread(() -> {
+            try {
+                ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
+                serverSocketChannel.socket().bind(new InetSocketAddress(4242));
+                serverSocketChannel.configureBlocking(false);
+                while (!Thread.interrupted()) {
+                    SocketChannel socketChannel = serverSocketChannel.accept();
+                    if (socketChannel != null) {
+                        // new client with socketChannel
+                        socketChannel.configureBlocking(false);
+                        socketChannel.socket().setTcpNoDelay(true);
+                        selectorLock.lock();
+                        socketChannel.register(selector, SelectionKey.OP_READ,
+                                new ClientData(socketChannel, this));
+                        selectorLock.unlock();
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("IOException in serverAcceptNewClientsThread");
+                System.exit(-1);
+            }
+        });
+        serverReadFromClientsThread = new Thread(() -> {
+            try {
+                while (!Thread.interrupted()) {
+                    int readyChannelsCount = selector.select(1000);
+                    if (readyChannelsCount != 0) {
+                        selectorLock.lock();
+                        Set<SelectionKey> selectedKeys = selector.selectedKeys();
+                        selectorLock.unlock();
+                        Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
+                        while (keyIterator.hasNext()) {
+                            SelectionKey key = keyIterator.next();
+                            if (key.isReadable()) { // a channel is ready for reading
+                                var client = (ClientData) key.attachment();
+                                client.read();
                             }
+                            keyIterator.remove();
                         }
-                    } catch (IOException e) {
-                        System.err.println("IOException in serverAcceptNewClientsThread");
-                        System.exit(-1);
                     }
                 }
-            });
-            serverReadFromClientsThread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        while (!Thread.interrupted()) {
-                            selectorLock.lock();
-                            Selector currentSelector = selector;
-                            selectorLock.unlock();
-                            int readyChannelsCount = currentSelector.select(1000);
-                            if (readyChannelsCount != 0) {
-                                selectorLock.lock();
-                                Set<SelectionKey> selectedKeys = currentSelector.selectedKeys();
-                                selectorLock.unlock();
-                                Iterator<SelectionKey> keyIterator = selectedKeys.iterator();
-                                while (keyIterator.hasNext()) {
-                                    SelectionKey key = keyIterator.next();
-                                    if (key.isReadable()) {// a channel is ready for reading
-                                        // TODO
-                                        SocketChannel channel = (SocketChannel) key.channel(); // ??????????????????????????????????
-                                        ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
-                                        int bytesRead = channel.read(buffer);
-
-                                        var query = new String(getSubarray(buffer.array(), bytesRead), StandardCharsets.UTF_8);
-                                        System.out.println("Query received: ");
-                                        System.out.println(query);
-                                        receiveQuery(query, channel.socket());
-                                    }
-                                    keyIterator.remove();
-                                }
-                            }
-                        }
-                    } catch (IOException e) {
-                        System.err.println("IOException in serverReadFromClientsThread");
-                        System.exit(-1);
-                    }
-                }
-            });
-            serverAcceptNewClientsThread.start();
-            serverReadFromClientsThread.start();
-        } else {
-            throw new ServerError("Server is already running", new Error());
-        }
-    }
-
-    /**
-     * Answers on user query and writes results to socket.
-     * If query is <1: Int> <path: String>, returns <size: Int> (<name: String> <is_dir: Boolean>)*
-     * If query is <2: Int> <path: String>, returns <size: Long> <content: Bytes>.
-     * <p>
-     * Otherwise, or in case of any errors or wrong query parameters, writes "-1" to socket.
-     */
-    private void receiveQuery(@NotNull String query, @NotNull Socket socket) throws IOException {
-        try (DataOutputStream outputStream = new DataOutputStream(socket.getOutputStream());
-             Scanner scanner = new Scanner(query)) {
-
-            if (!scanner.hasNextInt()) {
-                outputStream.writeBytes("-1");
-                return;
+            } catch (IOException e) {
+                System.err.println("IOException in serverReadFromClientsThread");
+                System.exit(-1);
             }
-
-            int command = scanner.nextInt();
-            if (command != 1 && command != 2) {
-                outputStream.writeBytes("-1");
-                return;
-            }
-
-            if (command == 1) {
-                String path = scanner.next();
-
-                if (scanner.hasNext()) {
-                    outputStream.writeBytes("-1");
-                    return;
-                }
-
-                var fileList = list(path);
-                if (fileList == null) {
-                    outputStream.writeBytes("-1");
-                    return;
-                }
-
-                outputStream.writeBytes(String.valueOf(fileList.size()));
-                for (StringAndBoolean stringAndBoolean : fileList) {
-                    outputStream.writeBytes(" " + stringAndBoolean.fileName + " ");
-                    outputStream.writeBytes(stringAndBoolean.isDirectory ? "1" : "0");
-                }
-            } else {
-                String path = scanner.next();
-
-                if (scanner.hasNext()) {
-                    outputStream.writeLong(-1);
-                    return;
-                }
-
-                var sizeAndContent = get(path);
-
-                if (sizeAndContent == null) {
-                    outputStream.writeLong(-1);
-                    return;
-                }
-
-                long size = sizeAndContent.size;
-                InputStream inputStream = sizeAndContent.inputStream;
-
-
-                outputStream.writeLong(size);
-
-                byte[] buffer = new byte[BUFFER_SIZE];
-                while (true) {
-                    int length = inputStream.read(buffer);
-                    if (length == -1 || length == 0) {
-                        break;
-                    }
-
-                    outputStream.write(buffer, 0, length);
-                }
-
-                inputStream.close();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
+        });
+        serverAcceptNewClientsThread.start();
+        serverReadFromClientsThread.start();
     }
 
     /**
@@ -276,8 +153,8 @@ public class Server {
      * Returns null in case of any mistakes (such as IOexception or wrong pathName).
      */
     @Nullable
-    private List<StringAndBoolean> list(@NotNull String pathName) {
-        var fileList = new ArrayList<StringAndBoolean>();
+    public List<FileDescriprion> list(@NotNull String pathName) {
+        var fileList = new ArrayList<FileDescriprion>();
 
         Path path = Paths.get(pathToDir, pathName);
         File file = path.toFile();
@@ -286,31 +163,13 @@ public class Server {
             return null;
         }
 
-        try {
-            for (var subFile : Files.walk(path).map(Path::toFile).collect(Collectors.toList())) {
-                boolean isDirectory = subFile.isDirectory();
-                String pathToSubFile = subFile.getAbsolutePath().substring(pathToDir.length());
-
-                fileList.add(new StringAndBoolean(pathToSubFile, isDirectory));
-            }
-
-            return fileList;
-        } catch (IOException e) {
-            return null;
+        for (var subFile : Objects.requireNonNull(file.listFiles())) {
+            boolean isDirectory = subFile.isDirectory();
+            String fileName = subFile.getName();
+            fileList.add(new FileDescriprion(fileName, isDirectory));
         }
-    }
 
-    /**
-     * Class for storing (pathName, isDirectory).
-     */
-    private static class StringAndBoolean {
-        private String fileName;
-        private boolean isDirectory;
-
-        private StringAndBoolean(String fileName, boolean isDirectory) {
-            this.fileName = fileName;
-            this.isDirectory = isDirectory;
-        }
+        return fileList;
     }
 
     /**
