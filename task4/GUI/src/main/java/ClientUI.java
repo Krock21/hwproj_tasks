@@ -8,42 +8,49 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Pair;
 import me.hwproj.Client;
+import me.hwproj.FileDescription;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
- * TODO
+ * GUI for our FTP server.
  */
 public class ClientUI extends Application {
     /**
-     * TODO
+     * Maximum screen's width.
      */
     private double screenWidth;
 
 
     /**
-     * TODO
+     * Maximum screen's height.
      */
     private double screenHeight;
 
     /**
-     * TODO
+     * Maximum number of files per screen (if screen height is maximum).
      */
     private static final int FILES_PER_SCREEN = 20;
 
     /**
-     * TODO
+     * Height of one file on the screen (fixed to screenHeight).
      */
     private double fileHeight;
 
     /**
-     * TODO
+     * Number of files existing on screen (fixed to current fileMenu's height).
      */
     private int currentFilesOnScreen;
 
@@ -53,34 +60,60 @@ public class ClientUI extends Application {
     private Stage primaryStage;
 
     /**
-     * TODO
+     * List of files.
      */
     private VBox fileMenu;
 
     /**
-     * TODO
+     * Current size of fileMenu.
      */
     private double currentFileMenuWidth;
     private double currentFileMenuHeight;
 
     /**
-     * TODO
+     * Initial window's screen.
      */
     private static final int INITIAL_WIDTH = 600;
+
+    /**
+     * Minimum number of files that will be present on the screen. Therefore, minimum screen height is not less than
+     * fileHeight * MINIMAL_FILES_ON_SCREEN;
+     */
     private static final int MINIMAL_FILES_ON_SCREEN = 5;
 
     /**
-     * TODO
+     * All label's that will show files
      */
     private Label[] labels = new Label[FILES_PER_SCREEN];
 
+
     /**
-     * TODO
+     * List of files that we got from the server on the last call.
+     */
+    private List<FileDescription> currentFiles;
+
+    /**
+     * Is this list sorted (first by isDirectory(), secondly lexicographically).
+     */
+    private boolean sorted = false;
+
+    /**
+     * Number of the current chosen label on the screen.
+     */
+    private int currentLabel = 0;
+
+    /**
+     * Number of the current chosen file.
      */
     private int currentFile = 0;
 
     /**
-     * TODO
+     * Path to the current work directory (on the server).
+     */
+    private Path path = FileSystems.getDefault().getPath(".");
+
+    /**
+     * Client we working with.
      */
     private Client client = new Client();
 
@@ -104,6 +137,7 @@ public class ClientUI extends Application {
         MenuItem connectToServer = new MenuItem("Connect to new server");
         connectToServer.setOnAction(this::connect);
         MenuItem disconnectFromServer = new MenuItem("Disconnect from server");
+        disconnectFromServer.setOnAction(this::disconnect);
         menu.getItems().addAll(connectToServer, disconnectFromServer);
         menuBar.getMenus().add(menu);
 
@@ -113,7 +147,6 @@ public class ClientUI extends Application {
 
         for (int i = 0; i < FILES_PER_SCREEN; i++) {
             labels[i] = new Label();
-            labels[i].setText("queue of QUEUE");
             labels[i].setMinHeight(fileHeight);
             labels[i].setFont(Font.font(fileHeight));
         }
@@ -138,13 +171,21 @@ public class ClientUI extends Application {
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
                 case DOWN: case S:
-                    if (currentFile + 1 < currentFilesOnScreen) {
+                    if (currentLabel + 1 < currentFilesOnScreen && currentFile + 1 < currentFiles.size()) {
+                        currentLabel++;
+                    }
+
+                    if (currentFile + 1 < currentFiles.size()) {
                         currentFile++;
                     }
 
                     redraw();
                     break;
                 case UP: case W:
+                    if (currentLabel > 0) {
+                        currentLabel--;
+                    }
+
                     if (currentFile > 0) {
                         currentFile--;
                     }
@@ -152,6 +193,28 @@ public class ClientUI extends Application {
                     redraw();
                     break;
                 case ENTER:
+                    FileDescription file = currentFiles.get(currentFile);
+
+                    if (file.getPath().equals("../")) {
+                        path = path.getParent();
+                        updateManager();
+                    } else if (file.getIsDirectory()) {
+                        path = FileSystems.getDefault().getPath(path.toString(), file.getPath() + "/");
+                        updateManager();
+                    } else {
+                        FileChooser fileChooser = new FileChooser();
+                        File fileToSave = fileChooser.showSaveDialog(primaryStage);
+                        fileChooser.setInitialFileName(file.getPath());
+
+                        if (fileToSave != null) {
+                            try {
+                                client.executeGetWithFile(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
+                            } catch (IOException e) {
+                                showError("IO error: " + e.getMessage());
+                            }
+                        }
+                    }
+
                     break;
             }
         });
@@ -168,7 +231,27 @@ public class ClientUI extends Application {
     }
 
     /**
-     * TODO
+     * Updates current state after changing the working directory.
+     */
+    private void updateManager() {
+        currentFile = 0;
+        currentLabel = 0;
+
+        try {
+            currentFiles = client.executeList(path.toString());
+        } catch (IOException e) {
+            showError("Error during execution: " + e.getMessage());
+        }
+
+        if (path.getParent() != null) {
+            currentFiles.add(new FileDescription("../", true));
+        }
+        sorted = false;
+        redraw();
+    }
+
+    /**
+     * For now unused. Handles changing of the screen's width.
      */
     private void setCurrentWidthToStage(Number newWidth) {
         //primaryStage.setWidth((double) newWidth);
@@ -178,7 +261,7 @@ public class ClientUI extends Application {
     }
 
     /**
-     * TODO
+     * Handles changing of the screen's height.
      */
     private void setCurrentHeightToStage(Number newHeight) {
         //primaryStage.setHeight((double) newHeight);
@@ -188,43 +271,88 @@ public class ClientUI extends Application {
     }
 
     /**
-     * TODO
+     * Changes number of label's presented on the screen after height's changes.
      */
     private void resize() {
         currentFilesOnScreen = (int) (currentFileMenuHeight / fileHeight);
 
-        if (currentFile >= currentFilesOnScreen) {
-            currentFile = currentFilesOnScreen - 1;
+        if (currentLabel >= currentFilesOnScreen) {
+            currentLabel = currentFilesOnScreen - 1;
         }
-        if (currentFile < 0) {
-            currentFile = 0;
+        if (currentLabel < 0) {
+            currentLabel = 0;
         }
 
         fileMenu.setFillWidth(true);
         var fileList = fileMenu.getChildren();
         fileList.clear();
         fileList.addAll(Arrays.asList(labels).subList(0, currentFilesOnScreen));
+        redraw();
     }
 
     /**
-     * TODO
+     * Set's correct text and color to the label's on the screen.
      */
     private void redraw() {
+        if (currentFiles == null) {
+            currentFiles = new ArrayList<>();
+        }
+        if (!sorted) {
+            currentFiles.sort((fd1, fd2) -> {
+                if (fd1.getIsDirectory() == fd2.getIsDirectory()) {
+                    return fd1.getPath().equals("../") ? -1 : fd1.getPath().compareTo(fd2.getPath());
+                } else {
+                    return fd2.getIsDirectory() ? 1 : -1;
+                }
+            });
+            sorted = true;
+        }
+
+        for (var label : labels) {
+            label.setText("");
+        }
+
         for (int i = 0; i < currentFilesOnScreen; i++) {
-            if (i == currentFile) {
+            if (i == currentLabel) {
                 labels[i].setBackground(new Background(new BackgroundFill(Color.CYAN, CornerRadii.EMPTY, Insets.EMPTY)));
             } else {
                 labels[i].setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
             }
         }
+
+        for (int i = 0; currentFile + i < currentFiles.size() && currentLabel + i < currentFilesOnScreen; i++) {
+            assignLabel(labels[currentLabel + i], currentFiles.get(currentFile + i));
+
+        }
+        for (int i = 1; currentFile - i >= 0 && currentLabel - i >= 0; i++) {
+            assignLabel(labels[currentLabel - i], currentFiles.get(currentFile - i));
+        }
+    }
+
+    /**
+     * Set correct text and text color to the label representing given file.
+     */
+    private void assignLabel(Label label, FileDescription fileDescription) {
+        if (fileDescription.getIsDirectory()) {
+            label.setTextFill(Color.WHITE);
+        } else {
+            label.setTextFill(Color.GRAY);
+        }
+
+        label.setText(fileDescription.getPath());
     }
 
     @Override
     public void stop() {
+        try {
+            client.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
-     * TODO
+     * Connects client to the server he choosing.
      */
     private void connect(ActionEvent actionEvent) {
         // Create the custom dialog.
@@ -263,7 +391,10 @@ public class ClientUI extends Application {
 
         dialog.showAndWait().ifPresent(result -> {
             try {
-                client.start(result.getKey(), Integer.valueOf(result.getValue()));
+                client.connect(result.getKey(), Integer.valueOf(result.getValue()));
+
+                path = FileSystems.getDefault().getPath(".");
+                updateManager();
             } catch (NumberFormatException e) {
                 showError("Port must be a number.");
             } catch (ConnectException e) {
@@ -275,13 +406,29 @@ public class ClientUI extends Application {
     }
 
     /**
-     * TODO
+     * Disconnecting user from server he is connected to. Does nothing if he is not connected to any.
      */
-    private void showError(String s) {
+    private void disconnect(ActionEvent actionEvent) {
+        try {
+            client.disconnect();
+            currentFiles = null;
+            currentFile = 0;
+            currentLabel = 0;
+            for (var label : labels) {
+                label.setText("");
+            }
+        } catch (IOException ignored) {
+        }
+    }
+
+    /**
+     * Show's alert with error with given message.
+     */
+    private void showError(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Failed connect.");
         alert.setHeaderText("Error connecting to server.");
-        alert.setContentText(s);
+        alert.setContentText(message);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
     }
