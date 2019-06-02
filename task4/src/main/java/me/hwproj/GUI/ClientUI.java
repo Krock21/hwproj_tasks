@@ -23,7 +23,6 @@ import java.net.ConnectException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -119,6 +118,13 @@ public class ClientUI extends Application {
      */
     private Client client = new Client();
 
+    /**
+     *
+     * @param primaryStage
+     * @throws Exception
+     */
+    private BorderPane root;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
@@ -129,23 +135,23 @@ public class ClientUI extends Application {
 
         primaryStage.setTitle("My FTP client");
 
-        BorderPane root = new BorderPane();
+        root = new BorderPane();
         fileMenu = new VBox();
         fileMenu.setFillWidth(true);
         //fileMenu.setPrefHeight(screenHeight);
 
-        MenuBar menuBar = new MenuBar();
-        Menu menu = new Menu("Server");
-        MenuItem connectToServer = new MenuItem("Connect to new server");
+        var menuBar = new MenuBar();
+        var menu = new Menu("Server");
+        var connectToServer = new MenuItem("Connect to new server");
         connectToServer.setOnAction(this::connect);
-        MenuItem disconnectFromServer = new MenuItem("Disconnect from server");
+        var disconnectFromServer = new MenuItem("Disconnect from server");
         disconnectFromServer.setOnAction(this::disconnect);
         menu.getItems().addAll(connectToServer, disconnectFromServer);
         menuBar.getMenus().add(menu);
 
         root.setCenter(fileMenu);
         root.setTop(menuBar);
-        Scene scene = new Scene(root);
+        var scene = new Scene(root);
 
         for (int i = 0; i < FILES_PER_SCREEN; i++) {
             labels[i] = new Label();
@@ -168,6 +174,7 @@ public class ClientUI extends Application {
         primaryStage.setScene(scene);
 
         //fileMenu.widthProperty().addListener((observableValue, oldValue, newValue) -> setCurrentWidthToStage(newValue));
+        root.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage2(newValue));
         fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
 
         scene.setOnKeyPressed(event -> {
@@ -225,6 +232,8 @@ public class ClientUI extends Application {
 
         primaryStage.show();
 
+        fileMenu.getChildren().addAll(labels);
+
         /*currentFileMenuWidth = fileMenu.getWidth();
         currentFileMenuHeight = fileMenu.getHeight();
 
@@ -267,7 +276,23 @@ public class ClientUI extends Application {
      */
     private void setCurrentHeightToStage(Number newHeight) {
         //primaryStage.setHeight((double) newHeight);
+
         currentFileMenuHeight = (double) newHeight;
+        resize();
+        redraw();
+    }
+
+    /**
+     * Handles changing of the screen's height.
+     */
+    private void setCurrentHeightToStage2(Number newHeight) {
+        //primaryStage.setHeight((double) newHeight);
+
+        fileMenu.getChildren().clear();
+        root.setCenter(null);
+        root.setCenter(fileMenu);
+
+        currentFileMenuHeight = fileMenu.getHeight();
         resize();
         redraw();
     }
@@ -286,9 +311,6 @@ public class ClientUI extends Application {
         }
 
         fileMenu.setFillWidth(true);
-        var fileList = fileMenu.getChildren();
-        fileList.clear();
-        fileList.addAll(Arrays.asList(labels).subList(0, currentFilesOnScreen));
         redraw();
     }
 
@@ -362,17 +384,17 @@ public class ClientUI extends Application {
         dialog.setTitle("Connect to server");
         dialog.setHeaderText("Type info to connect to server");
 
-        ButtonType connectType = new ButtonType("Connect", ButtonBar.ButtonData.APPLY);
+        var connectType = new ButtonType("Connect", ButtonBar.ButtonData.APPLY);
         dialog.getDialogPane().getButtonTypes().addAll(connectType, ButtonType.CANCEL);
 
-        GridPane grid = new GridPane();
+        var grid = new GridPane();
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(20, 150, 10, 10));
 
-        TextField ip = new TextField();
+        var ip = new TextField();
         ip.setPromptText("IP");
-        TextField port = new TextField();
+        var port = new TextField();
         port.setPromptText("Port");
 
         grid.add(new Label("Server IP:"), 0, 0);
@@ -427,7 +449,7 @@ public class ClientUI extends Application {
      * Show's alert with error with given message.
      */
     private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
+        var alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Failed connect.");
         alert.setHeaderText("Error connecting to server.");
         alert.setContentText(message);

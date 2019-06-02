@@ -2,8 +2,8 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <bytecodeTargetLevel>
-      <module name="hwproj.main" target="12" />
-      <module name="hwproj.test" target="12" />
+      <module name="hwproj.GUI.main" target="12" />
+      <module name="hwproj.GUI.test" target="12" />
       <module name="me.hwproj.hwproj.main" target="12" />
       <module name="me.hwproj.hwproj.test" target="12" />
       <module name="spb.hse.smirnov.hwproj.main" target="12" />
