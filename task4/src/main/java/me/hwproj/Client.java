@@ -79,7 +79,9 @@ public class Client {
 
     /** Closes active connection with server */
     public void disconnect() throws IOException {
-        socketChannel.close();
+        if (socketChannel != null) {
+            socketChannel.close();
+        }
     }
 
     /**
@@ -156,6 +158,19 @@ public class Client {
     public void executeGet(@NotNull String path, @NotNull String pathToStore) throws IOException {
         sendRequest(writeRequest(2, path));
         try (var fileOutputStream = new FileOutputStream(pathToStore)) {
+            readResponse(fileOutputStream);
+        }
+    }
+
+    /**
+     * Loads file on server's {@code path} to {@code pathToStore}
+     * Request format: [long: length][int: 2][String: path]
+     *      length -- number of bytes in message's body
+     * @throws IllegalArgumentException if server rejected request
+     */
+    public void executeGetWithFile(@NotNull String path, @NotNull File file) throws IOException {
+        sendRequest(writeRequest(2, path));
+        try (var fileOutputStream = new FileOutputStream(file)) {
             readResponse(fileOutputStream);
         }
     }
