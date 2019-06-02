@@ -27,20 +27,26 @@ public class Client {
         if (args.length != 2) {
             throw new IllegalArgumentException("Should take two arguments: server ip and server port");
         }
+
         var client = new Client();
+        client.start(args[0], Integer.valueOf(args[1]));
+    }
+
+    /**
+     * TODO
+     */
+    public void start(String serverIp, int serverPort) throws IOException {
         var in = new Scanner(System.in);
-        String serverIp = args[0];
-        int serverPort = Integer.valueOf(args[1]);
         System.out.println("Server ip: " + serverIp + " port: " + serverPort);
         System.out.println("Start connecting");
-        client.connect(serverIp, serverPort);
+        connect(serverIp, serverPort);
         System.out.println("Successfully connected!");
         while (true) {
             try {
                 System.out.println("Write request code (1 for list, 2 for get, 3 for disconnect)");
                 int requestCode = in.nextInt();
                 if (requestCode == 3) {
-                    client.disconnect();
+                    disconnect();
                     break;
                 }
                 System.out.println("Write path");
@@ -48,7 +54,7 @@ public class Client {
                 String path = in.nextLine();
                 if (requestCode == 1) {
                     System.out.println("Start executing list");
-                    var result = client.executeList(path);
+                    var result = executeList(path);
                     System.out.println("List executed! Here is the result:");
                     for (var file : result) {
                         System.out.println(file.getPath() + " " + file.getIsDirectory());
@@ -57,7 +63,7 @@ public class Client {
                     System.out.println("Write path where to store file");
                     String pathToStore = in.nextLine();
                     System.out.println("Start executing get");
-                    client.executeGet(path, pathToStore);
+                    executeGet(path, pathToStore);
                     System.out.println("Get executed. File stored to " + pathToStore);
                 }
             } catch (IllegalArgumentException | InputMismatchException e) {
