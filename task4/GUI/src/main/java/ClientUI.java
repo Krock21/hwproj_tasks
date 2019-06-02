@@ -1,8 +1,13 @@
 import javafx.application.Application;
+import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -59,12 +64,17 @@ public class ClientUI extends Application {
      * TODO
      */
     private static final int INITIAL_WIDTH = 300;
-    private static final int INITIAL_FILE_ON_SCREEN = 5;
+    private static final int MINIMAL_FILES_ON_SCREEN = 5;
 
     /**
      * TODO
      */
     private Label[] labels = new Label[FILES_PER_SCREEN];
+
+    /**
+     * TODO
+     */
+    private int currentFile = 0;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -84,19 +94,14 @@ public class ClientUI extends Application {
 
         for (int i = 0; i < FILES_PER_SCREEN; i++) {
             labels[i] = new Label();
-            labels[i].setText("Хуесосина");
+            labels[i].setText("Приличный текст");
             labels[i].setMinHeight(fileHeight);
             labels[i].setFont(Font.font(fileHeight));
         }
 
         //TODO
         primaryStage.setMinWidth(INITIAL_WIDTH);
-        primaryStage.setMinHeight(INITIAL_FILE_ON_SCREEN * fileHeight);
-
-        currentWidth = primaryStage.getWidth();
-        currentHeight = primaryStage.getHeight();
-
-        resize();
+        primaryStage.setMinHeight(MINIMAL_FILES_ON_SCREEN * fileHeight);
 
         content.widthProperty().addListener((observableValue, oldValue, newValue) -> setCurrentWidthToStage(newValue));
         content.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
@@ -108,7 +113,38 @@ public class ClientUI extends Application {
          */
 
         primaryStage.setScene(scene);
+
+        scene.setOnKeyPressed(event -> {
+            switch (event.getCode()) {
+                case DOWN: case S:
+                    if (currentFile + 1 < currentFilesOnScreen) {
+                        currentFile++;
+                    }
+
+                    redraw();
+                    break;
+                case UP: case W:
+                    if (currentFile > 0) {
+                        currentFile--;
+                    }
+
+                    redraw();
+                    break;
+                case ENTER:
+                    break;
+            }
+        });
+
+        content.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+
         primaryStage.show();
+
+        currentWidth = content.getWidth();
+        currentHeight = content.getHeight();
+
+        System.out.println(currentHeight);
+        resize();
+        redraw();
     }
 
     /**
@@ -135,10 +171,30 @@ public class ClientUI extends Application {
     private void resize() {
         currentFilesOnScreen = (int) ((currentHeight / screenHeight) * FILES_PER_SCREEN);
 
+        if (currentFile >= currentFilesOnScreen) {
+            currentFile = currentFilesOnScreen - 1;
+        }
+        if (currentFile < 0) {
+            currentFile = 0;
+        }
+
         content.setFillWidth(true);
         var fileList = content.getChildren();
         fileList.clear();
         fileList.addAll(Arrays.asList(labels).subList(0, currentFilesOnScreen));
+    }
+
+    /**
+     * TODO
+     */
+    private void redraw() {
+        for (int i = 0; i < currentFilesOnScreen; i++) {
+            if (i == currentFile) {
+                labels[i].setBackground(new Background(new BackgroundFill(Color.CYAN, CornerRadii.EMPTY, Insets.EMPTY)));
+            } else {
+                labels[i].setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+            }
+        }
     }
 
     @Override
