@@ -136,8 +136,7 @@ public class ClientUI extends Application {
         primaryStage.setTitle("My FTP client");
 
         root = new BorderPane();
-        fileMenu = new VBox();
-        fileMenu.setFillWidth(true);
+        reassignFileMenu();
         //fileMenu.setPrefHeight(screenHeight);
 
         var menuBar = new MenuBar();
@@ -149,7 +148,6 @@ public class ClientUI extends Application {
         menu.getItems().addAll(connectToServer, disconnectFromServer);
         menuBar.getMenus().add(menu);
 
-        root.setCenter(fileMenu);
         root.setTop(menuBar);
         var scene = new Scene(root);
 
@@ -174,8 +172,7 @@ public class ClientUI extends Application {
         primaryStage.setScene(scene);
 
         //fileMenu.widthProperty().addListener((observableValue, oldValue, newValue) -> setCurrentWidthToStage(newValue));
-        root.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage2(newValue));
-        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
+        primaryStage.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
 
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -228,17 +225,23 @@ public class ClientUI extends Application {
             }
         });
 
-        fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-
         primaryStage.show();
-
-        fileMenu.getChildren().addAll(labels);
 
         /*currentFileMenuWidth = fileMenu.getWidth();
         currentFileMenuHeight = fileMenu.getHeight();
 
         resize();
         redraw();*/
+    }
+
+    /**
+     * TODO
+     */
+    private void reassignFileMenu() {
+        fileMenu = new VBox();
+        fileMenu.setFillWidth(true);
+        fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+        root.setCenter(fileMenu);
     }
 
     /**
@@ -269,6 +272,8 @@ public class ClientUI extends Application {
         currentFileMenuWidth = (double) newWidth;
         resize();
         redraw();
+
+        primaryStage.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
     }
 
     /**
@@ -276,23 +281,14 @@ public class ClientUI extends Application {
      */
     private void setCurrentHeightToStage(Number newHeight) {
         //primaryStage.setHeight((double) newHeight);
-
-        currentFileMenuHeight = (double) newHeight;
-        resize();
-        redraw();
+        reassignFileMenu();
+        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage2(newValue));
     }
 
-    /**
-     * Handles changing of the screen's height.
-     */
     private void setCurrentHeightToStage2(Number newHeight) {
-        //primaryStage.setHeight((double) newHeight);
+        currentFileMenuHeight = (double) newHeight;
+        System.out.println(currentFileMenuHeight);
 
-        fileMenu.getChildren().clear();
-        root.setCenter(null);
-        root.setCenter(fileMenu);
-
-        currentFileMenuHeight = fileMenu.getHeight();
         resize();
         redraw();
     }
@@ -310,7 +306,6 @@ public class ClientUI extends Application {
             currentLabel = 0;
         }
 
-        fileMenu.setFillWidth(true);
         redraw();
     }
 
@@ -318,6 +313,8 @@ public class ClientUI extends Application {
      * Set's correct text and color to the label's on the screen.
      */
     private void redraw() {
+        fileMenu.getChildren().clear();
+
         if (currentFiles == null) {
             currentFiles = new ArrayList<>();
         }
@@ -342,6 +339,7 @@ public class ClientUI extends Application {
             } else {
                 labels[i].setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
             }
+            fileMenu.getChildren().add(labels[i]);
         }
 
         for (int i = 0; currentFile + i < currentFiles.size() && currentLabel + i < currentFilesOnScreen; i++) {
@@ -364,6 +362,7 @@ public class ClientUI extends Application {
         }
 
         label.setText(fileDescription.getPath());
+        //fileMenu.getChildren().add(label);
     }
 
     @Override
