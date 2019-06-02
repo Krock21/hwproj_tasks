@@ -228,13 +228,13 @@ public class ClientUI extends Application {
                         currentLabel = 1;
                         updateManager();
                     } else {
-                        FileChooser fileChooser = new FileChooser();
+                        var fileChooser = new FileChooser();
                         File fileToSave = fileChooser.showSaveDialog(primaryStage);
                         fileChooser.setInitialFileName(file.getPath());
 
                         if (fileToSave != null) {
                             try {
-                                client.executeGetWithFile(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
+                                client.executeGet(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
                             } catch (IOException e) {
                                 showError("IO error: " + e.getMessage());
                             }
@@ -402,7 +402,7 @@ public class ClientUI extends Application {
      */
     private void connect(ActionEvent actionEvent) {
         // Create the custom dialog.
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        var dialog = new Dialog<Pair<String, String>>();
         dialog.setTitle("Connect to server");
         dialog.setHeaderText("Type info to connect to server");
 

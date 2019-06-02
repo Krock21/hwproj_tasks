@@ -4,10 +4,6 @@
     <bytecodeTargetLevel>
       <module name="hwproj.GUI.main" target="12" />
       <module name="hwproj.GUI.test" target="12" />
-      <module name="me.hwproj.hwproj.main" target="12" />
-      <module name="me.hwproj.hwproj.test" target="12" />
-      <module name="spb.hse.smirnov.hwproj.main" target="12" />
-      <module name="spb.hse.smirnov.hwproj.test" target="12" />
     </bytecodeTargetLevel>
   </component>
 </project>
