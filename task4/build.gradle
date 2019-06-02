@@ -7,7 +7,7 @@ plugins {
 group 'me.hwproj'
 version '1.0-SNAPSHOT'
 
-mainClassName = 'me.hwproj.Task3'
+mainClassName = 'me.hwproj.GUI.ClientUI'
 sourceCompatibility = 12
 
 repositories {
