@@ -208,7 +208,7 @@ public class ClientUI extends Application {
                         path = FileSystems.getDefault().getPath(path.toString(), file.getPath() + "/");
                         updateManager();
                     } else {
-                        FileChooser fileChooser = new FileChooser();
+                        var fileChooser = new FileChooser();
                         File fileToSave = fileChooser.showSaveDialog(primaryStage);
                         fileChooser.setInitialFileName(file.getPath());
 
@@ -379,7 +379,7 @@ public class ClientUI extends Application {
      */
     private void connect(ActionEvent actionEvent) {
         // Create the custom dialog.
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        var dialog = new Dialog<Pair<String, String>>();
         dialog.setTitle("Connect to server");
         dialog.setHeaderText("Type info to connect to server");
 
