@@ -24,9 +24,7 @@ import java.net.ConnectException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.sql.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * GUI for our FTP server.
@@ -128,6 +126,11 @@ public class ClientUI extends Application {
      */
     private BorderPane root;
 
+    /**
+     * TODO
+     */
+    private Stack<Pair<Integer, Integer>> prevPositions = new Stack<>();
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
@@ -207,9 +210,22 @@ public class ClientUI extends Application {
 
                     if (file.getPath().equals("../")) {
                         path = path.getParent();
+
+                        var prevPosition = prevPositions.pop();
+                        if (prevPosition != null) {
+                            currentFile = prevPosition.getKey();
+                            currentLabel = Math.min(prevPosition.getValue(), currentFilesOnScreen - 1);
+                        } else {
+                            currentFile = 0;
+                            currentLabel = 0;
+                        }
+
                         updateManager();
                     } else if (file.getIsDirectory()) {
                         path = FileSystems.getDefault().getPath(path.toString(), file.getPath() + "/");
+                        prevPositions.push(new Pair<>(currentFile, currentLabel));
+                        currentFile = 1;
+                        currentLabel = 1;
                         updateManager();
                     } else {
                         FileChooser fileChooser = new FileChooser();
@@ -252,9 +268,6 @@ public class ClientUI extends Application {
      * Updates current state after changing the working directory.
      */
     private void updateManager() {
-        currentFile = 0;
-        currentLabel = 0;
-
         try {
             currentFiles = client.executeList(path.toString());
         } catch (IOException e) {
@@ -263,6 +276,10 @@ public class ClientUI extends Application {
 
         if (path.getParent() != null) {
             currentFiles.add(new FileDescription("../", true));
+        }
+        if (currentFiles.size() == 1) {
+            currentLabel = 0;
+            currentFile = 0;
         }
         sorted = false;
         redraw();
@@ -289,9 +306,12 @@ public class ClientUI extends Application {
         fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage2(newValue));
     }
 
+    /**
+     * TODO
+     */
     private void setCurrentHeightToStage2(Number newHeight) {
         currentFileMenuHeight = (double) newHeight;
-        System.out.println(currentFileMenuHeight);
+        //System.out.println(currentFileMenuHeight);
 
         resize();
         redraw();
@@ -348,7 +368,6 @@ public class ClientUI extends Application {
 
         for (int i = 0; currentFile + i < currentFiles.size() && currentLabel + i < currentFilesOnScreen; i++) {
             assignLabel(labels[currentLabel + i], currentFiles.get(currentFile + i));
-
         }
         for (int i = 1; currentFile - i >= 0 && currentLabel - i >= 0; i++) {
             assignLabel(labels[currentLabel - i], currentFiles.get(currentFile - i));
@@ -421,6 +440,9 @@ public class ClientUI extends Application {
                 client.connect(result.getKey(), Integer.valueOf(result.getValue()));
 
                 path = FileSystems.getDefault().getPath(".");
+
+                currentFile = 0;
+                currentLabel = 0;
                 updateManager();
             } catch (NumberFormatException e) {
                 showError("Port must be a number.");
