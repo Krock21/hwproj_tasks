@@ -57,10 +57,6 @@ public class CW2 extends Application {
         MutablePair previousPosition = new MutablePair(-1, -1);
         if (getParameters().getRaw().size() == 1)
             boardSize = Integer.parseInt(getParameters().getRaw().get(0));
-        if (boardSize < 2) {
-            System.err.println("size of board should be more than 1");
-            System.exit(0);
-        }
         gameBoard = new Board(boardSize);
         MutableBoolean isStopped = new MutableBoolean(false);
         for (int i = 0; i < boardSize; i++) {
