@@ -10,6 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.FileChooser;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -22,7 +23,9 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.sql.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -154,6 +157,7 @@ public class ClientUI extends Application {
         for (int i = 0; i < FILES_PER_SCREEN; i++) {
             labels[i] = new Label();
             labels[i].setMinHeight(fileHeight);
+            labels[i].setMaxHeight(fileHeight);
             labels[i].setFont(Font.font(fileHeight));
         }
 
@@ -339,8 +343,8 @@ public class ClientUI extends Application {
             } else {
                 labels[i].setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
             }
-            fileMenu.getChildren().add(labels[i]);
         }
+        fileMenu.getChildren().addAll(Arrays.asList(labels).subList(0, currentFilesOnScreen));
 
         for (int i = 0; currentFile + i < currentFiles.size() && currentLabel + i < currentFilesOnScreen; i++) {
             assignLabel(labels[currentLabel + i], currentFiles.get(currentFile + i));
