@@ -120,9 +120,7 @@ public class ClientUI extends Application {
     private Client client = new Client();
 
     /**
-     *
-     * @param primaryStage
-     * @throws Exception
+     * TODo
      */
     private BorderPane root;
 
@@ -463,6 +461,7 @@ public class ClientUI extends Application {
             currentFiles = null;
             currentFile = 0;
             currentLabel = 0;
+            prevPositions.clear();
             for (var label : labels) {
                 label.setText("");
             }
