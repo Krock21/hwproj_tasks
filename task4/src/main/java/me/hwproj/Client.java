@@ -57,7 +57,8 @@ public class Client {
                     System.out.println("Write path where to store file");
                     String pathToStore = in.nextLine();
                     System.out.println("Start executing get");
-                    client.executeGet(path, pathToStore);
+                    var file = new File(pathToStore);
+                    client.executeGet(path, file);
                     System.out.println("Get executed. File stored to " + pathToStore);
                 }
             } catch (IllegalArgumentException | InputMismatchException e) {
@@ -155,20 +156,7 @@ public class Client {
      *      length -- number of bytes in message's body
      * @throws IllegalArgumentException if server rejected request
      */
-    public void executeGet(@NotNull String path, @NotNull String pathToStore) throws IOException {
-        sendRequest(writeRequest(2, path));
-        try (var fileOutputStream = new FileOutputStream(pathToStore)) {
-            readResponse(fileOutputStream);
-        }
-    }
-
-    /**
-     * Loads file on server's {@code path} to {@code pathToStore}
-     * Request format: [long: length][int: 2][String: path]
-     *      length -- number of bytes in message's body
-     * @throws IllegalArgumentException if server rejected request
-     */
-    public void executeGetWithFile(@NotNull String path, @NotNull File file) throws IOException {
+    public void executeGet(@NotNull String path, @NotNull File file) throws IOException {
         sendRequest(writeRequest(2, path));
         try (var fileOutputStream = new FileOutputStream(file)) {
             readResponse(fileOutputStream);

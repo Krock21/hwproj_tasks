@@ -214,7 +214,7 @@ public class ClientUI extends Application {
 
                         if (fileToSave != null) {
                             try {
-                                client.executeGetWithFile(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
+                                client.executeGet(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
                             } catch (IOException e) {
                                 showError("IO error: " + e.getMessage());
                             }
