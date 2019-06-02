@@ -120,9 +120,7 @@ public class ClientUI extends Application {
     private Client client = new Client();
 
     /**
-     *
-     * @param primaryStage
-     * @throws Exception
+     * TODo
      */
     private BorderPane root;
 
@@ -401,6 +399,8 @@ public class ClientUI extends Application {
      * Connects client to the server he choosing.
      */
     private void connect(ActionEvent actionEvent) {
+        disconnect(null);
+
         // Create the custom dialog.
         var dialog = new Dialog<Pair<String, String>>();
         dialog.setTitle("Connect to server");
@@ -463,6 +463,7 @@ public class ClientUI extends Application {
             currentFiles = null;
             currentFile = 0;
             currentLabel = 0;
+            prevPositions.clear();
             for (var label : labels) {
                 label.setText("");
             }
