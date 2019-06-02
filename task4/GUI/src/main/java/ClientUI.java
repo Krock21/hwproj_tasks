@@ -3,10 +3,10 @@ import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.CornerRadii;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Screen;
@@ -52,18 +52,18 @@ public class ClientUI extends Application {
     /**
      * TODO
      */
-    private VBox content;
+    private VBox fileMenu;
 
     /**
      * TODO
      */
-    private double currentWidth;
-    private double currentHeight;
+    private double currentFileMenuWidth;
+    private double currentFileMenuHeight;
 
     /**
      * TODO
      */
-    private static final int INITIAL_WIDTH = 300;
+    private static final int INITIAL_WIDTH = 600;
     private static final int MINIMAL_FILES_ON_SCREEN = 5;
 
     /**
@@ -79,32 +79,41 @@ public class ClientUI extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
-
-        primaryStage.setTitle("My FTP client");
-
-        content = new VBox();
-        Scene scene = new Scene(content);
-        //primaryStage.setFullScreen(true);
-        //primaryStage.setResizable(false);
-
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
         screenWidth = primaryScreenBounds.getWidth();
         screenHeight = primaryScreenBounds.getHeight();
         fileHeight = screenHeight / FILES_PER_SCREEN;
 
+        primaryStage.setTitle("My FTP client");
+
+        BorderPane root = new BorderPane();
+        fileMenu = new VBox();
+        fileMenu.setFillWidth(true);
+        //fileMenu.setPrefHeight(screenHeight);
+
+        MenuBar menuBar = new MenuBar();
+        Menu menu = new Menu("Server");
+        MenuItem connectToServer = new MenuItem("Connect to new server");
+        MenuItem disconnectFromServer = new MenuItem("Disconnect from server");
+        menu.getItems().addAll(connectToServer, disconnectFromServer);
+        menuBar.getMenus().add(menu);
+
+        root.setCenter(fileMenu);
+        root.setTop(menuBar);
+        Scene scene = new Scene(root);
+
         for (int i = 0; i < FILES_PER_SCREEN; i++) {
             labels[i] = new Label();
-            labels[i].setText("Приличный текст");
+            labels[i].setText("queue of QUEUE");
             labels[i].setMinHeight(fileHeight);
             labels[i].setFont(Font.font(fileHeight));
         }
 
-        //TODO
         primaryStage.setMinWidth(INITIAL_WIDTH);
         primaryStage.setMinHeight(MINIMAL_FILES_ON_SCREEN * fileHeight);
 
-        content.widthProperty().addListener((observableValue, oldValue, newValue) -> setCurrentWidthToStage(newValue));
-        content.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
+        primaryStage.setWidth(INITIAL_WIDTH);
+        primaryStage.setHeight(MINIMAL_FILES_ON_SCREEN * fileHeight);
 
         /*primaryStage.setX(primaryScreenBounds.getMinX());
         primaryStage.setY(primaryScreenBounds.getMinY());
@@ -113,6 +122,9 @@ public class ClientUI extends Application {
          */
 
         primaryStage.setScene(scene);
+
+        //fileMenu.widthProperty().addListener((observableValue, oldValue, newValue) -> setCurrentWidthToStage(newValue));
+        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
 
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -135,16 +147,15 @@ public class ClientUI extends Application {
             }
         });
 
-        content.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+        fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
 
         primaryStage.show();
 
-        currentWidth = content.getWidth();
-        currentHeight = content.getHeight();
+        /*currentFileMenuWidth = fileMenu.getWidth();
+        currentFileMenuHeight = fileMenu.getHeight();
 
-        System.out.println(currentHeight);
         resize();
-        redraw();
+        redraw();*/
     }
 
     /**
@@ -152,8 +163,9 @@ public class ClientUI extends Application {
      */
     private void setCurrentWidthToStage(Number newWidth) {
         //primaryStage.setWidth((double) newWidth);
-        currentWidth = (double) newWidth;
+        currentFileMenuWidth = (double) newWidth;
         resize();
+        redraw();
     }
 
     /**
@@ -161,15 +173,16 @@ public class ClientUI extends Application {
      */
     private void setCurrentHeightToStage(Number newHeight) {
         //primaryStage.setHeight((double) newHeight);
-        currentHeight = (double) newHeight;
+        currentFileMenuHeight = (double) newHeight;
         resize();
+        redraw();
     }
 
     /**
      * TODO
      */
     private void resize() {
-        currentFilesOnScreen = (int) ((currentHeight / screenHeight) * FILES_PER_SCREEN);
+        currentFilesOnScreen = (int) (currentFileMenuHeight / fileHeight);
 
         if (currentFile >= currentFilesOnScreen) {
             currentFile = currentFilesOnScreen - 1;
@@ -178,8 +191,8 @@ public class ClientUI extends Application {
             currentFile = 0;
         }
 
-        content.setFillWidth(true);
-        var fileList = content.getChildren();
+        fileMenu.setFillWidth(true);
+        var fileList = fileMenu.getChildren();
         fileList.clear();
         fileList.addAll(Arrays.asList(labels).subList(0, currentFilesOnScreen));
     }
