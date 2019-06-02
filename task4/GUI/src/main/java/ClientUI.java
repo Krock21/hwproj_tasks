@@ -1,17 +1,20 @@
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.util.Pair;
+import me.hwproj.Client;
 
+import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Arrays;
 
 /**
@@ -76,6 +79,11 @@ public class ClientUI extends Application {
      */
     private int currentFile = 0;
 
+    /**
+     * TODO
+     */
+    private Client client = new Client();
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
@@ -94,6 +102,7 @@ public class ClientUI extends Application {
         MenuBar menuBar = new MenuBar();
         Menu menu = new Menu("Server");
         MenuItem connectToServer = new MenuItem("Connect to new server");
+        connectToServer.setOnAction(this::connect);
         MenuItem disconnectFromServer = new MenuItem("Disconnect from server");
         menu.getItems().addAll(connectToServer, disconnectFromServer);
         menuBar.getMenus().add(menu);
@@ -212,6 +221,69 @@ public class ClientUI extends Application {
 
     @Override
     public void stop() {
+    }
+
+    /**
+     * TODO
+     */
+    private void connect(ActionEvent actionEvent) {
+        // Create the custom dialog.
+        Dialog<Pair<String, String>> dialog = new Dialog<>();
+        dialog.setTitle("Connect to server");
+        dialog.setHeaderText("Type info to connect to server");
+
+        ButtonType connectType = new ButtonType("Connect", ButtonBar.ButtonData.APPLY);
+        dialog.getDialogPane().getButtonTypes().addAll(connectType, ButtonType.CANCEL);
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(20, 150, 10, 10));
+
+        TextField ip = new TextField();
+        ip.setPromptText("IP");
+        TextField port = new TextField();
+        port.setPromptText("Port");
+
+        grid.add(new Label("Server IP:"), 0, 0);
+        grid.add(ip, 1, 0);
+        grid.add(new Label("Server port:"), 0, 1);
+        grid.add(port, 1, 1);
+
+        dialog.getDialogPane().setContent(grid);
+
+        Platform.runLater(ip::requestFocus);
+
+        dialog.setResultConverter(dialogButton -> {
+            if (dialogButton == connectType) {
+                return new Pair<>(ip.getText(), port.getText());
+            }
+            return null;
+        });
+
+        dialog.showAndWait().ifPresent(result -> {
+            try {
+                client.start(result.getKey(), Integer.valueOf(result.getValue()));
+            } catch (NumberFormatException e) {
+                showError("Port must be a number.");
+            } catch (ConnectException e) {
+                showError("Connection denied. Please check server IP and port.");
+            } catch (IOException e) {
+                showError("IO error: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * TODO
+     */
+    private void showError(String s) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("Failed connect.");
+        alert.setHeaderText("Error connecting to server.");
+        alert.setContentText(s);
+        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        alert.showAndWait();
     }
 
     public static void main(String[] args) {
