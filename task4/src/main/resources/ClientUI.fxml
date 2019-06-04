@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="me.hwproj.GUI.ClientUIController"
+            prefHeight="400.0" prefWidth="600.0"
+            fx:id="pane">
+    <top>
+        <MenuBar fx:id="menuBar">
+            <Menu fx:id="menu" text="Server">
+                <MenuItem fx:id="connectToServer" onAction="#connect" text="Connect to new server"/>
+                <MenuItem fx:id="disconnectFromServer" onAction="#disconnect" text="Disconnect from server"/>
+            </Menu>
+        </MenuBar>
+    </top>
+
+    <center>
+        <VBox fx:id="fileMenu">
+            <Label fx:id="label1" />
+            <Label fx:id="label2" />
+            <Label fx:id="label3" />
+            <Label fx:id="label4" />
+            <Label fx:id="label5" />
+            <Label fx:id="label6" />
+            <Label fx:id="label7" />
+            <Label fx:id="label8" />
+            <Label fx:id="label9" />
+            <Label fx:id="label10" />
+            <Label fx:id="label11" />
+            <Label fx:id="label12" />
+            <Label fx:id="label13" />
+            <Label fx:id="label14" />
+            <Label fx:id="label15" />
+            <Label fx:id="label16" />
+            <Label fx:id="label17" />
+            <Label fx:id="label18" />
+            <Label fx:id="label19" />
+            <Label fx:id="label20" />
+        </VBox>
+    </center>
+</BorderPane>
