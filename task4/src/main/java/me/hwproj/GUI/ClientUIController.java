@@ -207,6 +207,7 @@ public class ClientUIController {
 
     public void initialiseStage(Stage stage) {
         primaryStage = stage;
+
         primaryStage.setMinWidth(INITIAL_WIDTH);
         primaryStage.setMinHeight(MINIMAL_FILES_ON_SCREEN * fileHeight);
 
@@ -278,7 +279,6 @@ public class ClientUIController {
                     break;
             }
         });
-
     }
 
     @FXML
@@ -295,7 +295,6 @@ public class ClientUIController {
             labels[i].setMinHeight(fileHeight);
             labels[i].setMaxHeight(fileHeight);
             labels[i].setFont(Font.font(fileHeight));
-            labels[i].setText("hui");
         }
 
         reassignFileMenu();
@@ -348,14 +347,14 @@ public class ClientUIController {
     private void setCurrentHeightToStage2(Number newHeight) {
         currentFileMenuHeight = (double) newHeight;
 
-        resize();
+        redraw();
     }
 
     /**
      * Changes number of label's presented on the screen after height's changes.
      */
     private void resize() {
-        currentFilesOnScreen = (int) (currentFileMenuHeight / fileHeight);
+        currentFilesOnScreen = (int) (fileMenu.getHeight() / fileHeight);
 
         if (currentLabel >= currentFilesOnScreen) {
             currentLabel = currentFilesOnScreen - 1;
@@ -363,15 +362,18 @@ public class ClientUIController {
         if (currentLabel < 0) {
             currentLabel = 0;
         }
-
-        redraw();
     }
 
     /**
      * Set's correct text and color to the label's on the screen.
      */
     private void redraw() {
+        resize();
+
         fileMenu.getChildren().clear();
+        for (var label : labels) {
+            label.setVisible(false);
+        }
 
         if (currentFiles == null) {
             currentFiles = new ArrayList<>();
@@ -397,6 +399,8 @@ public class ClientUIController {
             } else {
                 labels[i].setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
             }
+
+            labels[i].setVisible(true);
         }
         fileMenu.getChildren().addAll(Arrays.asList(labels).subList(0, currentFilesOnScreen));
 
@@ -406,6 +410,10 @@ public class ClientUIController {
         for (int i = 1; currentFile - i >= 0 && currentLabel - i >= 0; i++) {
             assignLabel(labels[currentLabel - i], currentFiles.get(currentFile - i));
         }
+
+        System.out.println(currentFiles.size() + " " + currentFiles.get(0).getPath());
+        System.out.println(currentLabel + " " + currentFile);
+        System.out.println("allo " + label1.getText());
     }
 
     /**
@@ -443,7 +451,9 @@ public class ClientUIController {
 
         var ip = new TextField();
         ip.setPromptText("IP");
+        ip.setId("ip");
         var port = new TextField();
+        port.setId("port");
         port.setPromptText("Port");
 
         grid.add(new Label("Server IP:"), 0, 0);

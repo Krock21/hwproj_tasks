@@ -51,7 +51,7 @@ public class Server {
         server.join();
     }
 
-    private Server(@NotNull String pathToDir) {
+    public Server(@NotNull String pathToDir) {
         this.pathToDir = Paths.get(pathToDir).toAbsolutePath().toString();
         selectorLock = new ReentrantLock();
     }
@@ -133,7 +133,7 @@ public class Server {
     }
 
     /** Accepts new client to FTP server */
-    private void join() throws Exception {
+    public void join() throws Exception {
         if (serverAcceptNewClientsThread == null || serverReadFromClientsThread == null) {
             throw new Exception("Server is not started");
         }

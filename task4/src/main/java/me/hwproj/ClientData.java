@@ -88,6 +88,7 @@ public class ClientData {
      */
     private void executeList(@NotNull String path) throws IOException {
         List<FileDescription> files = server.list(path);
+
         if (files == null) {
             sendResponse(generateReject());
             return;
@@ -115,6 +116,7 @@ public class ClientData {
      */
     private void executeGet(@NotNull String path) throws IOException {
         Server.SizeAndContent fileToSend = server.get(path);
+
         long size = -1;
         if (fileToSend != null) {
             size = fileToSend.getSize();
