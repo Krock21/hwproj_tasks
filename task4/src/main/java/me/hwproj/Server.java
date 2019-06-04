@@ -79,8 +79,10 @@ public class Server {
                         selectorLock.unlock();
                     }
                 }
+
+                serverSocketChannel.close();
             } catch (IOException e) {
-                System.err.println("IOException in serverAcceptNewClientsThread");
+                System.err.println("IOException in serverAcceptNewClientsThread "  + e.getMessage());
                 System.exit(-1);
             }
         });
