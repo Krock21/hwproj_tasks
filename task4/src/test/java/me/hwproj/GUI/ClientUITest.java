@@ -18,6 +18,7 @@ import org.testfx.framework.junit5.ApplicationTest;
 import java.io.File;
 import java.io.IOException;
 
+import static javafx.scene.input.KeyCode.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.assertions.api.Assertions.assertThat;
@@ -43,8 +44,12 @@ public class ClientUITest extends ApplicationTest {
     @Override
     public void start (Stage stage) throws Exception {
         this.primaryStage = stage;
-        Parent root = FXMLLoader.load(ClientUIMain.class.getResource("../../../../resources/ClientUI.fxml"));
-        stage.setScene(new Scene(root));
+
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../resources/ClientUI.fxml"));
+        Parent root = loader.load();
+        primaryStage.setScene(new Scene(root));
+        ClientUIController controller = loader.getController();
+        controller.initialiseStage(primaryStage);
         stage.show();
         stage.toFront();
     }
@@ -93,6 +98,9 @@ public class ClientUITest extends ApplicationTest {
 
         new File(pathToRoot).mkdirs();
         new File(pathToRoot + "/1.txt").createNewFile();
+        new File(pathToRoot + "/2.txt").createNewFile();
+        new File(pathToRoot + "/folder").mkdir();
+        new File(pathToRoot + "/folder/3.txt").createNewFile();
 
         var serverThread = new Thread (() -> {
             var server = new Server(pathToRoot);
@@ -117,6 +125,27 @@ public class ClientUITest extends ApplicationTest {
 
         pressConnect();
 
-        verifyThat("#label1", hasText("1.txt"));
+        verifyThat("#label1", hasText("folder"));
+        verifyThat("#label2", hasText("1.txt"));
+        verifyThat("#label3", hasText("2.txt"));
+
+        push(ENTER);
+
+        verifyThat("#label1", hasText("../"));
+        verifyThat("#label2", hasText("3.txt"));
+
+        push(UP);
+        push(ENTER);
+
+        verifyThat("#label1", hasText("folder"));
+        verifyThat("#label2", hasText("1.txt"));
+        verifyThat("#label3", hasText("2.txt"));
+
+        push(DOWN);
+        push(DOWN);
+        push(DOWN);
+        push(UP);
+        push(UP);
+        push(UP);
     }
 }

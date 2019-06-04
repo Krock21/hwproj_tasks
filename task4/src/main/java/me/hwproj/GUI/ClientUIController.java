@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -241,6 +242,10 @@ public class ClientUIController {
                     redraw();
                     break;
                 case ENTER:
+                    if (currentFiles == null || currentFiles.size() == 0) {
+                        break;
+                    }
+
                     FileDescription file = currentFiles.get(currentFile);
 
                     if (file.getPath().equals("../")) {
@@ -410,10 +415,6 @@ public class ClientUIController {
         for (int i = 1; currentFile - i >= 0 && currentLabel - i >= 0; i++) {
             assignLabel(labels[currentLabel - i], currentFiles.get(currentFile - i));
         }
-
-        System.out.println(currentFiles.size() + " " + currentFiles.get(0).getPath());
-        System.out.println(currentLabel + " " + currentFile);
-        System.out.println("allo " + label1.getText());
     }
 
     /**
