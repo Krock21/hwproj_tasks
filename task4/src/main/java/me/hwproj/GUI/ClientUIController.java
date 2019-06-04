@@ -36,7 +36,7 @@ public class ClientUIController {
     /**
      * Maximum number of files per screen (if screen height is maximum).
      */
-    private static final int FILES_PER_SCREEN = 20;
+    public static final int FILES_PER_SCREEN = 20;
 
     /**
      * Initial window's screen.
@@ -292,7 +292,7 @@ public class ClientUIController {
                 label11, label12, label13, label14, label15, label16, label17, label18, label19, label20};
 
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-        fileHeight = primaryScreenBounds.getHeight() / FILES_PER_SCREEN;
+        fileHeight = (primaryScreenBounds.getHeight() - 100) / FILES_PER_SCREEN;
 
         fileMenu.getChildren().clear();
 
@@ -359,7 +359,7 @@ public class ClientUIController {
      * Changes number of label's presented on the screen after height's changes.
      */
     private void resize() {
-        currentFilesOnScreen = (int) (fileMenu.getHeight() / fileHeight);
+        currentFilesOnScreen = Math.min((int) (fileMenu.getHeight() / fileHeight), 20);
 
         if (currentLabel >= currentFilesOnScreen) {
             currentLabel = currentFilesOnScreen - 1;

@@ -124,8 +124,14 @@ public class Server {
 
     /** Stops the server and all active threads */
     public void stop() {
-        serverAcceptNewClientsThread.interrupt();
-        serverReadFromClientsThread.interrupt();
+        if (serverAcceptNewClientsThread != null) {
+            serverAcceptNewClientsThread.interrupt();
+        }
+
+        if (serverReadFromClientsThread != null) {
+            serverReadFromClientsThread.interrupt();
+        }
+
         serverAcceptNewClientsThread = null;
         serverReadFromClientsThread = null;
 
@@ -145,8 +151,7 @@ public class Server {
      * Lists all files in directory in format (fileName, isDirectory).
      * Returns null in case of any mistakes (such as IOexception or wrong pathName).
      */
-    @Nullable
-    public List<FileDescription> list(@NotNull String pathName) {
+    @Nullable List<FileDescription> list(@NotNull String pathName) {
         var fileList = new ArrayList<FileDescription>();
 
         Path path = Paths.get(pathToDir, pathName);
@@ -170,8 +175,7 @@ public class Server {
      * <p>
      * Returns null in case of any mistake (such as IOexception or incorrect pathName)
      */
-    @Nullable
-    public SizeAndContent get(@NotNull String pathName) {
+    @Nullable SizeAndContent get(@NotNull String pathName) {
         Path path = Paths.get(pathToDir, pathName);
         File file = path.toFile();
 
@@ -187,7 +191,7 @@ public class Server {
     }
 
     /** Pair of (size, inputStream) corresponding to created file */
-    public static class SizeAndContent {
+    static class SizeAndContent {
         private long size;
         @NotNull private InputStream inputStream;
 
@@ -196,12 +200,11 @@ public class Server {
             this.inputStream = inputStream;
         }
 
-        public long getSize() {
+        long getSize() {
             return size;
         }
 
-        @NotNull
-        public InputStream getInputStream() {
+        @NotNull InputStream getInputStream() {
             return inputStream;
         }
     }

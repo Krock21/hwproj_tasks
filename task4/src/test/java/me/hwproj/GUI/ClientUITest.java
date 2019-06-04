@@ -30,6 +30,11 @@ public class ClientUITest extends ApplicationTest {
     /**
      * TODO
      */
+    private Thread serverThread;
+
+    /**
+     * TODO
+     */
     private static boolean deleteDirectory(@NotNull File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {
@@ -50,8 +55,10 @@ public class ClientUITest extends ApplicationTest {
         primaryStage.setScene(new Scene(root));
         ClientUIController controller = loader.getController();
         controller.initialiseStage(primaryStage);
-        stage.show();
-        stage.toFront();
+
+        primaryStage.setFullScreen(true);
+        primaryStage.show();
+        primaryStage.toFront();
     }
 
     @BeforeAll
@@ -73,12 +80,19 @@ public class ClientUITest extends ApplicationTest {
         FxToolkit.hideStage();
         release(new KeyCode[]{});
         release(new MouseButton[]{});
+        if (serverThread != null && !serverThread.isInterrupted()) {
+            serverThread.interrupt();
+            serverThread.join();
+        }
     }
 
     /**
      * TODo
      */
     private void pressConnect() {
+        clickOn("#menu");
+        clickOn("#connectToServer");
+
         targetWindow("Connect to server").clickOn("#ip").write("127.0.0.1");
         targetWindow("Connect to server").clickOn("#port").write("4242");
 
@@ -92,17 +106,11 @@ public class ClientUITest extends ApplicationTest {
         }
     }
 
-    @Test
-    void testSimple () throws Exception {
-        String pathToRoot = "temp/testSimple";
-
-        new File(pathToRoot).mkdirs();
-        new File(pathToRoot + "/1.txt").createNewFile();
-        new File(pathToRoot + "/2.txt").createNewFile();
-        new File(pathToRoot + "/folder").mkdir();
-        new File(pathToRoot + "/folder/3.txt").createNewFile();
-
-        var serverThread = new Thread (() -> {
+    /**
+     * TODo
+     */
+    private void startServer(String pathToRoot) {
+        serverThread = new Thread (() -> {
             var server = new Server(pathToRoot);
             try {
                 server.start();
@@ -116,13 +124,35 @@ public class ClientUITest extends ApplicationTest {
                 server.stop();
             } catch (Exception e) {
                 e.printStackTrace();
+                server.stop();
             }
+
+            server.stop();
         });
         serverThread.start();
+    }
 
-        clickOn("#menu");
-        clickOn("#connectToServer");
+    @Test
+    void allLabelsPresentedOnScreen() {
+        String pathToRoot = "temp/";
+        startServer(pathToRoot);
+        pressConnect();
 
+        Label label20 = lookup("#label20").query();
+        assertNotNull(label20);
+    }
+
+    @Test
+    void testSimple() throws Exception {
+        String pathToRoot = "temp/testSimple";
+
+        new File(pathToRoot).mkdirs();
+        new File(pathToRoot + "/1.txt").createNewFile();
+        new File(pathToRoot + "/2.txt").createNewFile();
+        new File(pathToRoot + "/folder").mkdir();
+        new File(pathToRoot + "/folder/3.txt").createNewFile();
+
+        startServer(pathToRoot);
         pressConnect();
 
         verifyThat("#label1", hasText("folder"));
@@ -140,12 +170,5 @@ public class ClientUITest extends ApplicationTest {
         verifyThat("#label1", hasText("folder"));
         verifyThat("#label2", hasText("1.txt"));
         verifyThat("#label3", hasText("2.txt"));
-
-        push(DOWN);
-        push(DOWN);
-        push(DOWN);
-        push(UP);
-        push(UP);
-        push(UP);
     }
 }
