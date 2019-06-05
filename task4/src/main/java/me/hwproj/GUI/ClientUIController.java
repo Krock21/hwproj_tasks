@@ -15,6 +15,7 @@ import javafx.stage.Stage;
 import javafx.util.Pair;
 import me.hwproj.Client;
 import me.hwproj.FileDescription;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -161,6 +162,7 @@ public class ClientUIController {
     /**
      * Client we working with.
      */
+    @NotNull
     private Client client = new Client();
 
     /**
@@ -172,6 +174,7 @@ public class ClientUIController {
     /**
      * When user goes into directory, his position in parent directory saves in this stack.
      */
+    @NotNull
     private Stack<LabelAndFile> prevPositions = new Stack<>();
 
     /**
@@ -186,7 +189,7 @@ public class ClientUIController {
     }
 
     /**
-     * Pair of label and file positions.
+     * Pair of label and file positions in the file menu.
      */
     private static class LabelAndFile {
         private int label;
@@ -216,7 +219,7 @@ public class ClientUIController {
     /**
      *
      */
-    public void initialiseStage(Stage stage) {
+    public void initialiseStage(@NotNull Stage stage) {
         primaryStage = stage;
 
         primaryStage.setMinWidth(INITIAL_WIDTH);
@@ -225,7 +228,7 @@ public class ClientUIController {
         primaryStage.setWidth(INITIAL_WIDTH);
         primaryStage.setHeight(MINIMAL_FILES_ON_SCREEN * fileHeight);
 
-        primaryStage.heightProperty().addListener((observableValue, oldValue, newValue) -> onStageHeightChange(newValue));
+        primaryStage.heightProperty().addListener((observableValue, oldValue, newValue) -> onStageHeightChange());
 
         primaryStage.getScene().setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -278,7 +281,6 @@ public class ClientUIController {
                         currentLabel = 1;
                         updateManager();
                     } else {
-                        //var fileChooser = new FileChooser();
                         fileChooser.setInitialFileName(file.getPath());
                         File fileToSave = fileChooser.showSaveDialog(primaryStage);
 
@@ -308,7 +310,7 @@ public class ClientUIController {
      */
     private FileChooser fileChooser = new FileChooser();
 
-    public void setFileChooser(FileChooser fileChooser) {
+    public void setFileChooser(@NotNull FileChooser fileChooser) {
          this.fileChooser = fileChooser;
     }
 
@@ -341,7 +343,7 @@ public class ClientUIController {
         fileMenu = new VBox();
         fileMenu.setFillWidth(true);
         fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> onFileMenuHeightChange(newValue));
+        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> onFileMenuHeightChange());
         fileMenu.setId("fileMenu");
 
         pane.setCenter(null);
@@ -372,14 +374,14 @@ public class ClientUIController {
     /**
      * Handles changing of the screen's height.
      */
-    private void onStageHeightChange(Number newHeight) {
+    private void onStageHeightChange() {
         reassignFileMenu();
     }
 
     /**
      * Handles changing of the fileMenu height.
      */
-    private void onFileMenuHeightChange(Number newHeight) {
+    private void onFileMenuHeightChange() {
         redraw();
     }
 
@@ -443,7 +445,7 @@ public class ClientUIController {
     /**
      * Set correct text and text color to the label representing given file.
      */
-    private void assignLabel(Label label, FileDescription fileDescription) {
+    private void assignLabel(@NotNull Label label, @NotNull FileDescription fileDescription) {
         if (fileDescription.getIsDirectory()) {
             label.setTextFill(Color.WHITE);
         } else {
@@ -457,10 +459,9 @@ public class ClientUIController {
      * Connects client to the server he choosing.
      */
     @FXML
-    private void connect(ActionEvent actionEvent) {
+    private void connect(@SuppressWarnings("unused") ActionEvent actionEvent) {
         disconnect(null);
 
-        // Create the custom dialog.
         var dialog = new Dialog<Pair<String, String>>();
         dialog.setTitle("Connect to server");
         dialog.setHeaderText("Type info to connect to server");
@@ -507,12 +508,10 @@ public class ClientUIController {
                 updateManager();
             } catch (NumberFormatException e) {
                 showError("Port must be a number.");
-            } catch (ConnectException e) {
+            } catch (ConnectException | UnresolvedAddressException e) {
                 showError("Connection denied. Please check server IP and port.");
             } catch (IOException e) {
                 showError("IO error: " + e.getMessage());
-            } catch (UnresolvedAddressException e) {
-                showError("Connection denied. Please check server IP and port.");
             }
         });
     }
@@ -521,7 +520,7 @@ public class ClientUIController {
      * Disconnecting user from server he is connected to. Does nothing if he is not connected to any.
      */
     @FXML
-    private void disconnect(ActionEvent actionEvent) {
+    private void disconnect(@SuppressWarnings("unused") ActionEvent actionEvent) {
         try {
             client.disconnect();
             currentFiles = null;

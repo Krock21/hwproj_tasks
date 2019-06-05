@@ -73,6 +73,7 @@ public class Client {
         socketChannel.socket().setTcpNoDelay(true);
         socketChannel.configureBlocking(false);
         socketChannel.connect(new InetSocketAddress(serverIp, serverPort));
+        //noinspection StatementWithEmptyBody
         while (!socketChannel.finishConnect()) {
             // waiting
         }

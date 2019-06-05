@@ -11,14 +11,10 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import me.hwproj.Server;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.*;
-import org.mockito.Answers;
 import org.mockito.Mockito;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.testfx.api.FxToolkit;
 import org.testfx.framework.junit5.ApplicationTest;
 
@@ -29,7 +25,6 @@ import java.io.IOException;
 
 import static javafx.scene.input.KeyCode.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.testfx.api.FxAssert.verifyThat;
 import static org.testfx.util.NodeQueryUtils.hasText;
@@ -498,7 +493,7 @@ public class ClientUITest extends ApplicationTest {
     }
 
     @Test
-    void wrongIpGivesErrorAlert() throws IOException {
+    void wrongIpGivesErrorAlert() {
         clickOn("#menu");
         clickOn("#connectToServer");
 
@@ -507,9 +502,24 @@ public class ClientUITest extends ApplicationTest {
 
         clickButton("Connect to server", "Connect");
 
-        assertDoesNotThrow(() -> {
-            clickButton("Failed to connect", "OK");
-        });
+        assertDoesNotThrow(() -> clickButton("Failed to connect", "OK"));
+    }
+
+    @Test
+    void cancelButtonWorks() {
+        String pathToRoot = "temp/testCancel";
+        new File(pathToRoot).mkdirs();
+        new File(pathToRoot + "/folder").mkdirs();
+
+        startServer(pathToRoot);
+
+        clickOn("#menu");
+        clickOn("#connectToServer");
+
+        clickButton("Connect to server", "Cancel");
+
+        pressConnect();
+        verifyThat("#label1", hasText("folder"));
     }
 
     /**
