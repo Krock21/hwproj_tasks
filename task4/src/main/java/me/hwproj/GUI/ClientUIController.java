@@ -6,7 +6,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -67,15 +66,7 @@ public class ClientUIController {
     private VBox fileMenu;
 
     /**
-     * Current size of fileMenu.
-     */
-    private double currentFileMenuWidth;
-    private double currentFileMenuHeight;
-
-
-
-    /**
-     * TODO
+     * All labels with files on the screen (not all of them may be present).
      */
     @FXML
     private Label label1;
@@ -138,7 +129,7 @@ public class ClientUIController {
     private Label label20;
 
     /**
-     * All label's that will show files
+     * All label's that will show files (array with labels above. Cannot initialize it here because FXML does not allow it).
      */
     private Label[] labels;
     /**
@@ -172,40 +163,58 @@ public class ClientUIController {
     private Client client = new Client();
 
     /**
-     * TODo
+     * Main app's pane.
      */
     @FXML
     private BorderPane pane;
 
     /**
-     * TODO
+     * When user goes into directory, his position in parent directory saves in this stack.
      */
-    private Stack<Pair<Integer, Integer>> prevPositions = new Stack<>();
+    private Stack<LabelAndFile> prevPositions = new Stack<>();
 
     /**
-     * TODO
+     * Method to call on the app's closing.
+     */
+    void stop() {
+        try {
+            client.disconnect();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Pair of label and file positions.
+     */
+    private static class LabelAndFile {
+        private int label;
+        private int file;
+
+        private LabelAndFile(int label, int file) {
+            this.label = label;
+            this.file = file;
+        }
+
+
+        private int getLabel() {
+            return label;
+        }
+
+        private int getFile() {
+            return file;
+        }
+    }
+
+    /**
+     * Bar on the top of the app.
      */
     @FXML
     private MenuBar menuBar;
 
     /**
-     * TODO
+     *
      */
-    @FXML
-    private Menu menu;
-
-    /**
-     * TODO
-     */
-    @FXML
-    private MenuItem connectToServer;
-
-    /**
-     * TODO
-     */
-    @FXML
-    private MenuItem disconnectFromServer;
-
     public void initialiseStage(Stage stage) {
         primaryStage = stage;
 
@@ -215,7 +224,7 @@ public class ClientUIController {
         primaryStage.setWidth(INITIAL_WIDTH);
         primaryStage.setHeight(MINIMAL_FILES_ON_SCREEN * fileHeight);
 
-        primaryStage.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage(newValue));
+        primaryStage.heightProperty().addListener((observableValue, oldValue, newValue) -> onStageHeightChange(newValue));
 
         primaryStage.getScene().setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -253,8 +262,8 @@ public class ClientUIController {
 
                         var prevPosition = prevPositions.pop();
                         if (prevPosition != null) {
-                            currentFile = prevPosition.getKey();
-                            currentLabel = Math.min(prevPosition.getValue(), currentFilesOnScreen - 1);
+                            currentFile = prevPosition.getFile();
+                            currentLabel = Math.min(prevPosition.getLabel(), currentFilesOnScreen - 1);
                         } else {
                             currentFile = 0;
                             currentLabel = 0;
@@ -263,7 +272,7 @@ public class ClientUIController {
                         updateManager();
                     } else if (file.getIsDirectory()) {
                         path = FileSystems.getDefault().getPath(path.toString(), file.getPath() + "/");
-                        prevPositions.push(new Pair<>(currentFile, currentLabel));
+                        prevPositions.push(new LabelAndFile(currentLabel, currentFile));
                         currentFile = 1;
                         currentLabel = 1;
                         updateManager();
@@ -291,7 +300,10 @@ public class ClientUIController {
     }
 
     /**
+     * File chooser that will show save dialogs to the user.
      *
+     * I could came up with some legend why it can be here with public setter...
+     * but actually I just need it to mock.
      */
     private FileChooser fileChooser = new FileChooser();
 
@@ -299,6 +311,9 @@ public class ClientUIController {
          this.fileChooser = fileChooser;
     }
 
+    /**
+     * Initializes object's on screen.
+     */
     @FXML
     public void initialize() {
         labels = new Label[] {label1, label2, label3, label4, label5, label6, label7, label8, label9, label10,
@@ -317,15 +332,15 @@ public class ClientUIController {
 
         fileMenu.setFillWidth(true);
         fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> onFileMenuHeightChange(newValue));
         reassignFileMenu();
     }
 
     /**
-     * TODO
+     * Unbind and bind again fileMenu so it would change it's height to fill the parent.
      */
     private void reassignFileMenu() {
         //fileMenu = new VBox();
-        //fileMenu.getChildren().add(label1);
         pane.setCenter(null);
         pane.setCenter(fileMenu);
     }
@@ -354,22 +369,19 @@ public class ClientUIController {
     /**
      * Handles changing of the screen's height.
      */
-    private void setCurrentHeightToStage(Number newHeight) {
+    private void onStageHeightChange(Number newHeight) {
         reassignFileMenu();
-        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> setCurrentHeightToStage2(newValue));
     }
 
     /**
-     * TODO
+     * Handles changing of the fileMenu height.
      */
-    private void setCurrentHeightToStage2(Number newHeight) {
-        currentFileMenuHeight = (double) newHeight;
-
+    private void onFileMenuHeightChange(Number newHeight) {
         redraw();
     }
 
     /**
-     * Changes number of label's presented on the screen after height's changes.
+     * Changes number of label presented on the screen after height's changes.
      */
     private void resize() {
         currentFilesOnScreen = Math.min((int) (fileMenu.getHeight() / fileHeight), 20);

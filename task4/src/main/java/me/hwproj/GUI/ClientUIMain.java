@@ -31,6 +31,11 @@ import java.util.*;
  * GUI for our FTP server.
  */
 public class ClientUIMain extends Application {
+    /**
+     * App's controller.
+     */
+    private ClientUIController controller;
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("My FTP client");
@@ -38,23 +43,15 @@ public class ClientUIMain extends Application {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../resources/ClientUI.fxml"));
         Parent root = loader.load();
         primaryStage.setScene(new Scene(root));
-        ClientUIController controller = loader.getController();
+        controller = loader.getController();
         controller.initialiseStage(primaryStage);
         primaryStage.show();
     }
 
-
-
-    /* TODo
     @Override
     public void stop() {
-        try {
-            client.disconnect();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        controller.stop();
     }
-     */
 
     public static void main(String[] args) {
         Application.launch(args);
