@@ -69,7 +69,7 @@ public class ClientUITest extends ApplicationTest {
     public void start (Stage stage) throws Exception {
         this.primaryStage = stage;
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../resources/ClientUI.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("ClientUI.fxml"));
         Parent root = loader.load();
         stage.setScene(new Scene(root));
         controller = loader.getController();

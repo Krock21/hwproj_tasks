@@ -19,7 +19,7 @@ public class ClientUIMain extends Application {
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("My FTP client");
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("ClientUI.fxml"));
+        var loader = new FXMLLoader(getClass().getResource("ClientUI.fxml"));
         Parent root = loader.load();
         primaryStage.setScene(new Scene(root));
         controller = loader.getController();
