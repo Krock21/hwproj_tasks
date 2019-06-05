@@ -36,19 +36,28 @@ import static org.testfx.util.NodeQueryUtils.hasText;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class ClientUITest extends ApplicationTest {
+    /**
+     * ID's of all labels on the choose file screen.
+     */
     private static String[] labelNames;
 
+    /**
+     * Main stage app is run on.
+     */
     private Stage primaryStage;
 
+    /**
+     * Stages's controller object.
+     */
     private ClientUIController controller;
 
     /**
-     * TODO
+     * Thread on which server will run on.
      */
     private Thread serverThread;
 
     /**
-     * TODO
+     * Deletes all files in directory (recursievly) and directory itself.
      */
     private static void deleteDirectory(@NotNull File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();
@@ -106,7 +115,7 @@ public class ClientUITest extends ApplicationTest {
     }
 
     /**
-     * TODo
+     * Connects user to local server.
      */
     private void pressConnect() {
         clickOn("#menu");
@@ -126,7 +135,7 @@ public class ClientUITest extends ApplicationTest {
     }
 
     /**
-     * TODo
+     * Starts thread with local server.
      */
     private void startServer(String pathToRoot) {
         serverThread = new Thread (() -> {
@@ -152,7 +161,7 @@ public class ClientUITest extends ApplicationTest {
     }
 
     /**
-     * TODO
+     * Returns true if label with given ID is currently on focus (meaning have CYAN color).
      */
     private boolean labelOnFocus(String id) {
         Label label = lookup(id).query();
@@ -316,14 +325,14 @@ public class ClientUITest extends ApplicationTest {
     }
 
     /**
-     * TODo
+     * Returns true if label marked as directory (text color is WHITE)
      */
     private boolean isDir(String labelid) {
         return ((Label) lookup(labelid).query()).getTextFill().equals(Color.WHITE);
     }
 
     /**
-     * TODo
+     * Returns true if label marked as file (text color is GRAY)
      */
     private boolean isFile(String labelid) {
         return ((Label) lookup(labelid).query()).getTextFill().equals(Color.GRAY);
@@ -492,19 +501,6 @@ public class ClientUITest extends ApplicationTest {
 
         for (int i = 0; i < n; i++) {
             assertEquals(i, result[i]);
-        }
-    }
-
-    /**
-     * TODO
-     */
-    private void pushOnFileChooser(KeyCode keyCode) {
-        for (var window : listTargetWindows()) {
-            if (window.equals(primaryStage.getScene().getWindow())) {
-                continue;
-            }
-
-            targetWindow(window).push(ENTER);
         }
     }
 }
