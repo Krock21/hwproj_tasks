@@ -20,6 +20,9 @@ dependencies {
     compile 'org.jetbrains:annotations:16.0.2'
     testCompile "org.testfx:testfx-core:4.0.15-alpha"
     testCompile "org.testfx:testfx-junit5:4.0.15-alpha"
+    testCompile 'org.mockito:mockito-core:2.28.2'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+    testImplementation 'org.mockito:mockito-inline:2.13.0'
 }
 
 test {

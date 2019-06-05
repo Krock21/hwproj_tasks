@@ -268,16 +268,20 @@ public class ClientUIController {
                         currentLabel = 1;
                         updateManager();
                     } else {
-                        var fileChooser = new FileChooser();
-                        File fileToSave = fileChooser.showSaveDialog(primaryStage);
+                        //var fileChooser = new FileChooser();
                         fileChooser.setInitialFileName(file.getPath());
+                        File fileToSave = fileChooser.showSaveDialog(primaryStage);
 
                         if (fileToSave != null) {
+                            System.out.println("okokok");
+
                             try {
                                 client.executeGet(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
                             } catch (IOException e) {
                                 showError("IO error: " + e.getMessage());
                             }
+                        } else {
+                            System.out.println("wtf");
                         }
                     }
 
@@ -286,13 +290,22 @@ public class ClientUIController {
         });
     }
 
+    /**
+     *
+     */
+    private FileChooser fileChooser = new FileChooser();
+
+    public void setFileChooser(FileChooser fileChooser) {
+         this.fileChooser = fileChooser;
+    }
+
     @FXML
     public void initialize() {
         labels = new Label[] {label1, label2, label3, label4, label5, label6, label7, label8, label9, label10,
                 label11, label12, label13, label14, label15, label16, label17, label18, label19, label20};
 
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-        fileHeight = (primaryScreenBounds.getHeight() - 100) / FILES_PER_SCREEN;
+        fileHeight = (primaryScreenBounds.getHeight() - menuBar.getMaxHeight() - 1) / FILES_PER_SCREEN;
 
         fileMenu.getChildren().clear();
 
@@ -302,6 +315,8 @@ public class ClientUIController {
             labels[i].setFont(Font.font(fileHeight));
         }
 
+        fileMenu.setFillWidth(true);
+        fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
         reassignFileMenu();
     }
 
@@ -310,8 +325,6 @@ public class ClientUIController {
      */
     private void reassignFileMenu() {
         //fileMenu = new VBox();
-        fileMenu.setFillWidth(true);
-        fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
         //fileMenu.getChildren().add(label1);
         pane.setCenter(null);
         pane.setCenter(fileMenu);
@@ -376,9 +389,6 @@ public class ClientUIController {
         resize();
 
         fileMenu.getChildren().clear();
-        for (var label : labels) {
-            label.setVisible(false);
-        }
 
         if (currentFiles == null) {
             currentFiles = new ArrayList<>();
@@ -404,8 +414,6 @@ public class ClientUIController {
             } else {
                 labels[i].setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
             }
-
-            labels[i].setVisible(true);
         }
         fileMenu.getChildren().addAll(Arrays.asList(labels).subList(0, currentFilesOnScreen));
 
