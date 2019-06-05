@@ -54,7 +54,7 @@ public class ClientUITest extends ApplicationTest {
     /**
      * Deletes all files in directory (recursievly) and directory itself.
      */
-    private static void deleteDirectory(@NotNull File directoryToBeDeleted) {
+    public static void deleteDirectory(@NotNull File directoryToBeDeleted) {
         File[] allContents = directoryToBeDeleted.listFiles();
         if (allContents != null) {
             for (File file : allContents) {
