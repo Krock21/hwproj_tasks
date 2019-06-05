@@ -124,14 +124,7 @@ public class ClientUITest extends ApplicationTest {
         targetWindow("Connect to server").clickOn("#ip").write("127.0.0.1");
         targetWindow("Connect to server").clickOn("#port").write("4242");
 
-        for (var node : targetWindow("Connect to server").lookup(".button").queryAll()) {
-            if (node instanceof Button) {
-                Button button = (Button) node;
-                if (button.getText().equals("Connect")) {
-                    clickOn(button);
-                }
-            }
-        }
+        clickButton("Connect to server", "Connect");
     }
 
     /**
@@ -501,6 +494,36 @@ public class ClientUITest extends ApplicationTest {
 
         for (int i = 0; i < n; i++) {
             assertEquals(i, result[i]);
+        }
+    }
+
+    @Test
+    void wrongIpGivesErrorAlert() throws IOException {
+        clickOn("#menu");
+        clickOn("#connectToServer");
+
+        targetWindow("Connect to server").clickOn("#ip").write("NOT IP");
+        targetWindow("Connect to server").clickOn("#port").write("4242");
+
+        clickButton("Connect to server", "Connect");
+
+        assertDoesNotThrow(() -> {
+            clickButton("Failed to connect", "OK");
+        });
+    }
+
+    /**
+     * It's impossible to query button by IDs on Dialogs and Alerts, this method does it by button's text.
+     */
+    private void clickButton(String windowTitle, String buttonText) {
+        for (var node : targetWindow(windowTitle).lookup(".button").queryAll()) {
+            if (node instanceof Button) {
+                Button button = (Button) node;
+                if (button.getText().equals(buttonText)) {
+                    clickOn(button);
+                    break;
+                }
+            }
         }
     }
 }

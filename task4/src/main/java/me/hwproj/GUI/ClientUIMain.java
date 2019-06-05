@@ -1,31 +1,10 @@
 package me.hwproj.GUI;
 
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.stage.FileChooser;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.util.Pair;
-import me.hwproj.Client;
-import me.hwproj.FileDescription;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.util.*;
 
 /**
  * GUI for our FTP server.

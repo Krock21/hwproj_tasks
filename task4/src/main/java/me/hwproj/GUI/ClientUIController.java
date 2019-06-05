@@ -19,6 +19,7 @@ import me.hwproj.FileDescription;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.nio.channels.UnresolvedAddressException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -510,6 +511,8 @@ public class ClientUIController {
                 showError("Connection denied. Please check server IP and port.");
             } catch (IOException e) {
                 showError("IO error: " + e.getMessage());
+            } catch (UnresolvedAddressException e) {
+                showError("Connection denied. Please check server IP and port.");
             }
         });
     }
@@ -537,8 +540,8 @@ public class ClientUIController {
      */
     private void showError(String message) {
         var alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Failed connect.");
-        alert.setHeaderText("Error connecting to server.");
+        alert.setTitle("Failed to connect");
+        alert.setHeaderText("Error connecting to server");
         alert.setContentText(message);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
