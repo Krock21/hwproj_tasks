@@ -112,16 +112,7 @@ public class Server {
         });
         serverAcceptNewClientsThread.start();
         serverReadFromClientsThread.start();
-
-        String ip;
-        try (final DatagramSocket socket = new DatagramSocket()) {
-            socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
-            ip = socket.getLocalAddress().getHostAddress();
-        } catch (Exception e) {
-            ip = "UNKNOWN";
-        }
-
-        System.out.println("Ok. Server started. Server IP is " + ip + ", server port is " + SERVER_PORT + ".");
+        System.out.println("Ok. Server started.");
     }
 
     /** Stops the server and all active threads */

@@ -285,15 +285,11 @@ public class ClientUIController {
                         File fileToSave = fileChooser.showSaveDialog(primaryStage);
 
                         if (fileToSave != null) {
-                            System.out.println("okokok");
-
                             try {
                                 client.executeGet(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
                             } catch (IOException e) {
                                 showError("IO error: " + e.getMessage());
                             }
-                        } else {
-                            System.out.println("wtf");
                         }
                     }
 
@@ -323,14 +319,14 @@ public class ClientUIController {
                 label11, label12, label13, label14, label15, label16, label17, label18, label19, label20};
 
         Rectangle2D primaryScreenBounds = Screen.getPrimary().getVisualBounds();
-        fileHeight = (primaryScreenBounds.getHeight() - menuBar.getMaxHeight() - 1) / FILES_PER_SCREEN;
+        fileHeight = (primaryScreenBounds.getHeight() - menuBar.getMaxHeight() - 10) / FILES_PER_SCREEN;
 
         fileMenu.getChildren().clear();
 
         for (int i = 0; i < FILES_PER_SCREEN; i++) {
             labels[i].setMinHeight(fileHeight);
             labels[i].setMaxHeight(fileHeight);
-            labels[i].setFont(Font.font(fileHeight));
+            labels[i].setFont(Font.font(fileHeight/1.5));
         }
 
         reassignFileMenu();
