@@ -330,9 +330,6 @@ public class ClientUIController {
             labels[i].setFont(Font.font(fileHeight));
         }
 
-        fileMenu.setFillWidth(true);
-        fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
-        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> onFileMenuHeightChange(newValue));
         reassignFileMenu();
     }
 
@@ -340,7 +337,12 @@ public class ClientUIController {
      * Unbind and bind again fileMenu so it would change it's height to fill the parent.
      */
     private void reassignFileMenu() {
-        //fileMenu = new VBox();
+        fileMenu = new VBox();
+        fileMenu.setFillWidth(true);
+        fileMenu.setBackground(new Background(new BackgroundFill(Color.BLUE, CornerRadii.EMPTY, Insets.EMPTY)));
+        fileMenu.heightProperty().addListener((observableValue, oldValue, newValue) -> onFileMenuHeightChange(newValue));
+        fileMenu.setId("fileMenu");
+
         pane.setCenter(null);
         pane.setCenter(fileMenu);
     }
