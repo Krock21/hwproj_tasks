@@ -45,8 +45,8 @@ public class Server {
             throw new IllegalArgumentException("Should take one argument: path to root");
         }
 
-        String pathToDir = argc[0];
-        Server server = new Server(pathToDir);
+        var pathToDir = argc[0];
+        var server = new Server(pathToDir);
         server.start();
         server.join();
     }
@@ -147,8 +147,8 @@ public class Server {
     @Nullable List<FileDescription> list(@NotNull String pathName) {
         var fileList = new ArrayList<FileDescription>();
 
-        Path path = Paths.get(pathToDir, pathName);
-        File file = path.toFile();
+        var path = Paths.get(pathToDir, pathName);
+        var file = path.toFile();
 
         if (!file.exists() || !file.isDirectory()) {
             return null;
@@ -169,8 +169,8 @@ public class Server {
      * Returns null in case of any mistake (such as IOexception or incorrect pathName)
      */
     @Nullable SizeAndContent get(@NotNull String pathName) {
-        Path path = Paths.get(pathToDir, pathName);
-        File file = path.toFile();
+        var path = Paths.get(pathToDir, pathName);
+        var file = path.toFile();
 
         if (!file.exists() || !file.isFile() || !file.canRead()) {
             return null;

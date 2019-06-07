@@ -53,7 +53,7 @@ class ClientTest {
     }
 
     @AfterEach
-    void tearDown () {
+    void tearDown() {
         if (serverThread != null && !serverThread.isInterrupted()) {
             serverThread.interrupt();
         }

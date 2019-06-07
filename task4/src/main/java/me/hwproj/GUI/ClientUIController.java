@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -230,73 +231,79 @@ public class ClientUIController {
 
         primaryStage.heightProperty().addListener((observableValue, oldValue, newValue) -> onStageHeightChange());
 
-        primaryStage.getScene().setOnKeyPressed(event -> {
-            switch (event.getCode()) {
-                case DOWN: case S:
-                    if (currentLabel + 1 < currentFilesOnScreen && currentFile + 1 < currentFiles.size()) {
-                        currentLabel++;
-                    }
-
-                    if (currentFile + 1 < currentFiles.size()) {
-                        currentFile++;
-                    }
-
-                    redraw();
-                    break;
-                case UP: case W:
-                    if (currentLabel > 0) {
-                        currentLabel--;
-                    }
-
-                    if (currentFile > 0) {
-                        currentFile--;
-                    }
-
-                    redraw();
-                    break;
-                case ENTER:
-                    if (currentFiles == null || currentFiles.size() == 0) {
-                        break;
-                    }
-
-                    FileDescription file = currentFiles.get(currentFile);
-
-                    if (file.getPath().equals("../")) {
-                        path = path.getParent();
-
-                        var prevPosition = prevPositions.pop();
-                        if (prevPosition != null) {
-                            currentFile = prevPosition.getFile();
-                            currentLabel = Math.min(prevPosition.getLabel(), currentFilesOnScreen - 1);
-                        } else {
-                            currentFile = 0;
-                            currentLabel = 0;
-                        }
-
-                        updateManager();
-                    } else if (file.getIsDirectory()) {
-                        path = FileSystems.getDefault().getPath(path.toString(), file.getPath() + "/");
-                        prevPositions.push(new LabelAndFile(currentLabel, currentFile));
-                        currentFile = 1;
-                        currentLabel = 1;
-                        updateManager();
-                    } else {
-                        fileChooser.setInitialFileName(file.getPath());
-                        File fileToSave = fileChooser.showSaveDialog(primaryStage);
-
-                        if (fileToSave != null) {
-                            try {
-                                client.executeGet(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
-                            } catch (IOException e) {
-                                showError("IO error: " + e.getMessage());
-                            }
-                        }
-                    }
-
-                    break;
-            }
-        });
+        primaryStage.getScene().setOnKeyPressed(this::handleKey);
     }
+
+    /**
+     * Handles user's pressed key;
+     */
+    private void handleKey(KeyEvent event) {
+        switch (event.getCode()) {
+            case DOWN: case S:
+                if (currentLabel + 1 < currentFilesOnScreen && currentFile + 1 < currentFiles.size()) {
+                    currentLabel++;
+                }
+
+                if (currentFile + 1 < currentFiles.size()) {
+                    currentFile++;
+                }
+
+                redraw();
+                break;
+            case UP: case W:
+                if (currentLabel > 0) {
+                    currentLabel--;
+                }
+
+                if (currentFile > 0) {
+                    currentFile--;
+                }
+
+                redraw();
+                break;
+            case ENTER:
+                if (currentFiles == null || currentFiles.size() == 0) {
+                    break;
+                }
+
+                FileDescription file = currentFiles.get(currentFile);
+
+                if (file.getPath().equals("../")) {
+                    path = path.getParent();
+
+                    var prevPosition = prevPositions.pop();
+                    if (prevPosition != null) {
+                        currentFile = prevPosition.getFile();
+                        currentLabel = Math.min(prevPosition.getLabel(), currentFilesOnScreen - 1);
+                    } else {
+                        currentFile = 0;
+                        currentLabel = 0;
+                    }
+
+                    updateManager();
+                } else if (file.getIsDirectory()) {
+                    path = FileSystems.getDefault().getPath(path.toString(), file.getPath() + "/");
+                    prevPositions.push(new LabelAndFile(currentLabel, currentFile));
+                    currentFile = 1;
+                    currentLabel = 1;
+                    updateManager();
+                } else {
+                    fileChooser.setInitialFileName(file.getPath());
+                    File fileToSave = fileChooser.showSaveDialog(primaryStage);
+
+                    if (fileToSave != null) {
+                        try {
+                            client.executeGet(FileSystems.getDefault().getPath(path.toString(), file.getPath()).toString(), fileToSave);
+                        } catch (IOException e) {
+                            showError("IO error: " + e.getMessage());
+                        }
+                    }
+                }
+
+                break;
+        }
+    }
+
 
     /**
      * File chooser that will show save dialogs to the user.
@@ -326,7 +333,7 @@ public class ClientUIController {
         for (int i = 0; i < FILES_PER_SCREEN; i++) {
             labels[i].setMinHeight(fileHeight);
             labels[i].setMaxHeight(fileHeight);
-            labels[i].setFont(Font.font(fileHeight/1.5));
+            labels[i].setFont(Font.font(fileHeight / 1.5));
         }
 
         reassignFileMenu();
@@ -475,7 +482,7 @@ public class ClientUIController {
         ip.setId("ip");
         var port = new TextField();
         port.setId("port");
-        port.setPromptText("Port");
+        port.setText("4242");
 
         grid.add(new Label("Server IP:"), 0, 0);
         grid.add(ip, 1, 0);

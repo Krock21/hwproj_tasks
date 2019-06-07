@@ -66,7 +66,7 @@ public class ClientUITest extends ApplicationTest {
     }
 
     @Override
-    public void start (Stage stage) throws Exception {
+    public void start(Stage stage) throws Exception {
         this.primaryStage = stage;
 
         var loader = new FXMLLoader(ClientUIMain.class.getResource("ClientUI.fxml"));
@@ -96,11 +96,11 @@ public class ClientUITest extends ApplicationTest {
     }
 
     @BeforeEach
-    void setUp () {
+    void setUp() {
     }
 
     @AfterEach
-    void tearDown () throws Exception {
+    void tearDown() throws Exception {
         FxToolkit.hideStage();
         release(new KeyCode[]{});
         release(new MouseButton[]{});
