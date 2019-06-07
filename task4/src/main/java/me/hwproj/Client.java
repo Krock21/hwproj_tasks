@@ -76,7 +76,7 @@ public class Client {
         while (!socketChannel.finishConnect()) {
             try {
                 Thread.sleep(100);
-            } catch (InterruptedException e) {
+            } catch (InterruptedException ignored) {
             }
         }
     }
