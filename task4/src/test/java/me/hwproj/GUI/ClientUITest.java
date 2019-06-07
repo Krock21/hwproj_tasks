@@ -69,7 +69,7 @@ public class ClientUITest extends ApplicationTest {
     public void start (Stage stage) throws Exception {
         this.primaryStage = stage;
 
-        var loader = new FXMLLoader(ClientUIMain.class.getResource("ClientUI.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("../../../../resources/ClientUI.fxml"));
         Parent root = loader.load();
         stage.setScene(new Scene(root));
         controller = loader.getController();
@@ -451,8 +451,8 @@ public class ClientUITest extends ApplicationTest {
         new File(pathToRoot).mkdirs();
 
         int n = 4;
-        var files = new File[n];
-        var savedFiles = new File[n];
+        File[] files = new File[n];
+        File[] savedFiles = new File[n];
 
         for (int i = 0; i < n; i++) {
             files[i] = new File(pathToRoot + "/" + i);
@@ -528,7 +528,7 @@ public class ClientUITest extends ApplicationTest {
     private void clickButton(String windowTitle, String buttonText) {
         for (var node : targetWindow(windowTitle).lookup(".button").queryAll()) {
             if (node instanceof Button) {
-                var button = (Button) node;
+                Button button = (Button) node;
                 if (button.getText().equals(buttonText)) {
                     clickOn(button);
                     break;
