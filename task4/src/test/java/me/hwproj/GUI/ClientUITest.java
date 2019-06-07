@@ -117,7 +117,6 @@ public class ClientUITest extends ApplicationTest {
         clickOn("#connectToServer");
 
         targetWindow("Connect to server").clickOn("#ip").write("127.0.0.1");
-        targetWindow("Connect to server").clickOn("#port").write("4242");
 
         clickButton("Connect to server", "Connect");
     }
@@ -498,7 +497,6 @@ public class ClientUITest extends ApplicationTest {
         clickOn("#connectToServer");
 
         targetWindow("Connect to server").clickOn("#ip").write("NOT IP");
-        targetWindow("Connect to server").clickOn("#port").write("4242");
 
         clickButton("Connect to server", "Connect");
 
