@@ -75,7 +75,7 @@ class ClientTest {
         Thread.sleep(4000); //Wait for server to set up
 
         int m = 20;
-        Thread[] threads = new Thread[m];
+        var threads = new Thread[m];
         for (int i = 0; i < m; i++) {
             threads[i] = new Thread(() -> {
                Client client = new Client();
