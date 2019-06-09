@@ -8,7 +8,7 @@ group 'me.hwproj'
 version '1.0-SNAPSHOT'
 
 mainClassName = 'me.hwproj.GUI.ClientUI'
-sourceCompatibility = 12
+sourceCompatibility = 11
 
 repositories {
     mavenCentral()
@@ -25,6 +25,6 @@ test {
 }
 
 javafx {
-    version = "12"
+    version = "11"
     modules = [ 'javafx.controls' ]
 }
