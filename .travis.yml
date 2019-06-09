@@ -1,0 +1,8 @@
+language: java
+jdk:
+  - oraclejdk11
+os:
+- linux
+env:
+- PROJECT_DIR=task4
+script: cd $PROJECT_DIR && ./gradlew build
